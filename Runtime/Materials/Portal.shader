@@ -2,7 +2,6 @@
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
         _LeftEyeTexture ("Texture", 2D) = "white" {}
         _RightEyeTexture("Texture", 2D) = "white" {}
     }
@@ -10,7 +9,6 @@
     {
         Tags { "RenderType"="Opaque" }
         LOD 100
-
         Pass
         {
             CGPROGRAM
@@ -33,9 +31,6 @@
                 UNITY_FOG_COORDS(1)
                 float4 vertex : SV_POSITION;
             };
-
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
 
             sampler2D _LeftEyeTexture;
             sampler2D _RightEyeTexture;

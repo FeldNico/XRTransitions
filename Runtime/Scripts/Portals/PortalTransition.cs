@@ -100,7 +100,7 @@ namespace Scripts
             {
                 await Task.Yield();
             }
-            await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 4));
+            await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 10));
             _startPortal.Initialize(this);
             _targetPortal.Initialize(this);
         }
