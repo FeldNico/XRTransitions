@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Rendering;
 
 namespace Scripts
@@ -23,7 +24,7 @@ namespace Scripts
             {
                 _camera = gameObject.AddComponent<Camera>();
             }
-            _mainCamera = transition.GetCamera();
+            _mainCamera = transition.Camera;
             _camera.CopyFrom(_mainCamera);
             
             _camera.forceIntoRenderTexture = true;
@@ -65,7 +66,7 @@ namespace Scripts
 
         private void RenderPortal()
         {
-            if (_isInitialized && _portalPlaneRenderer.isVisible)
+            if (_isInitialized && _portalPlaneRenderer.isVisible && InputState.currentUpdateType == InputUpdateType.BeforeRender)
             {
                 var localToWorldMatrix = _otherPortalTransform.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _portalTransform.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
                 transform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);

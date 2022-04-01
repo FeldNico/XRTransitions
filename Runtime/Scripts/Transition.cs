@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -17,7 +18,7 @@ namespace Scripts
         
         public abstract bool IsTransitioning  { get; protected set; }
 
-        protected abstract Task TriggerTransition();
+        public abstract Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation);
         
         public abstract Task Initialization();
         

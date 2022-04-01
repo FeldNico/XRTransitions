@@ -46,22 +46,11 @@ namespace Scripts
 
         public override bool IsTransitioning { get; protected set; }
 
-        public Camera GetCamera()
-        {
-            return _camera;
-        }
+        public Camera Camera => _camera;
+        
+        public Transform EyeLeftTransform => _eyeLeftTransform;
 
-        public Transform EyeLeftTransform
-        {
-            get => _eyeLeftTransform;
-            set => _eyeLeftTransform = value;
-        }
-
-        public Transform EyeRightTransform
-        {
-            get => _eyeRightTransform;
-            set => _eyeRightTransform = value;
-        }
+        public Transform EyeRightTransform => _eyeRightTransform;
 
         private void Awake()
         {
@@ -74,24 +63,18 @@ namespace Scripts
             };
         }
 
-        private void Start()
+        public override async Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
         {
-            StartCoroutine(Wait());
-            IEnumerator Wait()
-            {
-                yield return new WaitUntil(() => XRGeneralSettings.Instance.Manager.isInitializationComplete);
-                yield return null;
-                
-            }
-        }
-
-        protected override async Task TriggerTransition()
-        {
+            IsTransitioning = true;
             OnTransition?.Invoke();
-
-            await Task.Yield();
             
+            traveller.Player.position = (traveller.Player.position - traveller.transform.position) + targetPosition;
+            targetRotation.ToAngleAxis(out var angle, out var axis);
+            traveller.Player.RotateAround(traveller.transform.position,axis,angle);
+            Physics.SyncTransforms();
+
             OnTransitionEnd?.Invoke();
+            IsTransitioning = false;
         }
 
         public override async Task Initialization()
