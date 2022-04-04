@@ -12,12 +12,9 @@ public class Portal : MonoBehaviour
     private PortalCamera _leftPortalCamera;
     private PortalCamera _rightPortalCamera;
 
-    private Transition _transition;
-    private Portal _otherPortal;
+    private PortalTransition _transition;
+    private Transform _destination;
     private List<PortalTraveller> _travellers = new List<PortalTraveller>();
-
-    private static readonly int LeftRenderTexture = Shader.PropertyToID("_LeftEyeTexture");
-    private static readonly int RightRenderTexture = Shader.PropertyToID("_RightEyeTexture");
 
     private void Awake()
     {
@@ -39,15 +36,13 @@ public class Portal : MonoBehaviour
         _rightPortalCamera = new GameObject("RightCamera").AddComponent<PortalCamera>();
         _rightPortalCamera.Initialize(this, transition, Camera.StereoscopicEye.Right);
 
-        _otherPortal = transition.GetOtherPortal(this);
-
-        _renderPlaneRenderer.material.SetTexture(LeftRenderTexture, _leftPortalCamera.GetRenderTexture());
-        _renderPlaneRenderer.material.SetTexture(RightRenderTexture, _rightPortalCamera.GetRenderTexture());
+        _destination = transition.Destination;
     }
 
-    private bool FrontOfPortal(Vector3 pos)
+    public bool FrontOfPortal(Vector3 pos)
     {
-        return Math.Sign(Vector3.Dot(pos - transform.position, transform.forward)) > 0;
+        Transform t = transform;
+        return Math.Sign(Vector3.Dot(pos - t.position, t.forward)) > 0;
     }
 
     private void Update()
@@ -55,7 +50,7 @@ public class Portal : MonoBehaviour
         HandleTravellers();
     }
     
-    private void HandleTravellers()
+    private async void HandleTravellers()
     {
         for (int i = 0; i < _travellers.Count; i++)
         {
@@ -63,13 +58,13 @@ public class Portal : MonoBehaviour
 
             if (FrontOfPortal(traveller.LastPosition) && !FrontOfPortal(traveller.transform.position))
             {
-                var m = _otherPortal.transform.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * transform.worldToLocalMatrix *
+                var m = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * transform.worldToLocalMatrix *
                         traveller.transform.localToWorldMatrix;
                 Vector3 targetPosition = m.GetColumn(3);
                 Quaternion targetRotation =
-                    Quaternion.FromToRotation(transform.forward, _otherPortal.transform.forward) *
+                    Quaternion.FromToRotation(transform.forward, _destination.forward) *
                     Quaternion.AngleAxis(180f, Vector3.up);
-                _transition.TriggerTransition(traveller,targetPosition,targetRotation);
+                await _transition.TriggerTransition(traveller,targetPosition,targetRotation);
                 _travellers.RemoveAt(i);
                 i--;
             }

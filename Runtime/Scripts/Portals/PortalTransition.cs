@@ -1,25 +1,20 @@
 ﻿using System;
-using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.XR;
 using UnityEngine.XR.Management;
+using Object = UnityEngine.Object;
 
 namespace Scripts
 {
+    
+    [Serializable]
     public class PortalTransition: Transition
     {
         [SerializeField]
-        private Portal _startPortal;
+        private Portal _portal;
         
         [SerializeField]
-        private Portal _targetPortal;
-        
-        [SerializeField]
-        private Context _startContext;
-        
-        [SerializeField]
-        private Context _targetContext;
+        private Transform _destination;
 
         [SerializeField]
         private Camera _camera;
@@ -32,49 +27,34 @@ namespace Scripts
         
         private TransitionManager _transitionManager;
 
-        public override Context StartContext
-        {
-            get => _startContext;
-            protected set => _startContext = value;
-        }
+        private bool _isTransitioning;
 
-        public override Context TargetContext
-        {
-            get => _targetContext;
-            protected set => _targetContext = value;
-        }
-
-        public override bool IsTransitioning { get; protected set; }
-
+        private Portal Portal => _portal;
+        public Transform Destination => _destination;
         public Camera Camera => _camera;
-        
         public Transform EyeLeftTransform => _eyeLeftTransform;
-
         public Transform EyeRightTransform => _eyeRightTransform;
+        
 
         private void Awake()
         {
             _transitionManager = FindObjectOfType<TransitionManager>();
-            OnTransitionEnd += () =>
-            {
-                _transitionManager.CurrentContext = TargetContext;
-                (_targetContext, _startContext) = (_startContext, _targetContext);
-                (_startPortal, _targetPortal) = (_targetPortal, _startPortal);
-            };
         }
+        
+        public override bool IsTransitioning { get; protected set; }
 
         public override async Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
         {
-            IsTransitioning = true;
+            _isTransitioning = true;
             OnTransition?.Invoke();
-            
+
             traveller.Player.position = (traveller.Player.position - traveller.transform.position) + targetPosition;
             targetRotation.ToAngleAxis(out var angle, out var axis);
             traveller.Player.RotateAround(traveller.transform.position,axis,angle);
             Physics.SyncTransforms();
-
+            
+            _isTransitioning = false;
             OnTransitionEnd?.Invoke();
-            IsTransitioning = false;
         }
 
         public override async Task Initialization()
@@ -84,23 +64,7 @@ namespace Scripts
                 await Task.Yield();
             }
             await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 10));
-            _startPortal.Initialize(this);
-            _targetPortal.Initialize(this);
-        }
-
-        public Portal GetOtherPortal(Portal thisPortal)
-        {
-            if (thisPortal == _startPortal)
-            {
-                return _targetPortal;
-            }
-
-            if (thisPortal == _targetPortal)
-            {
-                return _startPortal;
-            }
-
-            return null;
+            _portal.Initialize(this);
         }
     }
 }
