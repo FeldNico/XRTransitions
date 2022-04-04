@@ -27,8 +27,6 @@ namespace Scripts
         
         private TransitionManager _transitionManager;
 
-        private bool _isTransitioning;
-
         private Portal Portal => _portal;
         public Transform Destination => _destination;
         public Camera Camera => _camera;
@@ -45,7 +43,7 @@ namespace Scripts
 
         public override async Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
         {
-            _isTransitioning = true;
+            IsTransitioning = true;
             OnTransition?.Invoke();
 
             traveller.Player.position = (traveller.Player.position - traveller.transform.position) + targetPosition;
@@ -53,7 +51,7 @@ namespace Scripts
             traveller.Player.RotateAround(traveller.transform.position,axis,angle);
             Physics.SyncTransforms();
             
-            _isTransitioning = false;
+            IsTransitioning = false;
             OnTransitionEnd?.Invoke();
         }
 
