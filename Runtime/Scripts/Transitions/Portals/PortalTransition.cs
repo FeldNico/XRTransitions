@@ -12,9 +12,6 @@ namespace Scripts
     {
         [SerializeField]
         private Portal _portal;
-        
-        [SerializeField]
-        private Transform _destination;
 
         [SerializeField]
         private Camera _camera;
@@ -28,7 +25,6 @@ namespace Scripts
         private TransitionManager _transitionManager;
 
         private Portal Portal => _portal;
-        public Transform Destination => _destination;
         public Camera Camera => _camera;
         public Transform EyeLeftTransform => _eyeLeftTransform;
         public Transform EyeRightTransform => _eyeRightTransform;
@@ -43,16 +39,22 @@ namespace Scripts
 
         public override async Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
         {
-            IsTransitioning = true;
-            OnTransition?.Invoke();
+            if (traveller.IsPlayer())
+            {
+                IsTransitioning = true;
+                OnTransition?.Invoke();
+            }
 
-            traveller.Player.position = (traveller.Player.position - traveller.transform.position) + targetPosition;
+            traveller.Origin.position = (traveller.Origin.position - traveller.transform.position) + targetPosition;
             targetRotation.ToAngleAxis(out var angle, out var axis);
-            traveller.Player.RotateAround(traveller.transform.position,axis,angle);
+            traveller.Origin.RotateAround(traveller.transform.position,axis,angle);
             Physics.SyncTransforms();
-            
-            IsTransitioning = false;
-            OnTransitionEnd?.Invoke();
+
+            if (traveller.IsPlayer())
+            {
+                IsTransitioning = false;
+                OnTransitionEnd?.Invoke();
+            }
         }
 
         public override async Task Initialization()

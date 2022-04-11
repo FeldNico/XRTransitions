@@ -11,9 +11,9 @@ public class PortalTraveller : Traveller
 
     private void Awake()
     {
-        if (Player == null)
+        if (Origin == null)
         {
-            Player = GetComponentInParent<XROrigin>().transform;
+            Origin = transform;
         }
 
         LastPosition = transform.position;
