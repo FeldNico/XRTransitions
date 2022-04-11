@@ -1,4 +1,5 @@
 ﻿using System;
+using Scripts.Utils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
@@ -10,9 +11,12 @@ namespace Scripts
     {
         private bool _isInitialized = false;
 
+        public float nearClipOffset = 0.05f;
+        public float nearClipLimit = 0.2f;
+        
         private Camera _camera;
         private Camera _mainCamera;
-        private Portal _portal;
+        private Camera.StereoscopicEye _eye;
         private Renderer _portalPlaneRenderer;
         private Transform _eyeTransform;
         private Transform _portalTransform;
@@ -23,7 +27,6 @@ namespace Scripts
 
         public void Initialize(Portal portal, PortalTransition transition, Camera.StereoscopicEye eye)
         {
-            _portal = portal;
             _portalTransform = portal.transform;
             transform.parent = _portalTransform;
             transform.localPosition = Vector3.zero;
@@ -45,14 +48,33 @@ namespace Scripts
             _camera.projectionMatrix = _mainCamera.GetStereoProjectionMatrix(eye);
             _camera.nonJitteredProjectionMatrix = _mainCamera.GetStereoNonJitteredProjectionMatrix(eye);
             _camera.enabled = false;
-            
-            _eyeTransform = eye == Camera.StereoscopicEye.Left
+
+            _eye = eye;
+            _eyeTransform = _eye == Camera.StereoscopicEye.Left
                 ? transition.EyeLeftTransform
                 : transition.EyeRightTransform;
-            _portalPlaneRenderer = portal.RenderPlane.GetComponent<Renderer>();
-            _portalPlaneRenderer.material.SetTexture(eye == Camera.StereoscopicEye.Left ? LeftRenderTexture : RightRenderTexture, _camera.targetTexture);
+            _portalPlaneRenderer = portal.PlaneRenderer;
+            _portalPlaneRenderer.material.SetTexture(_eye == Camera.StereoscopicEye.Left ? LeftRenderTexture : RightRenderTexture, _camera.targetTexture);
 
             _isInitialized = true;
+        }
+        
+        void SetNearClipPlane () {
+            // Learning resource:
+            // http://www.terathon.com/lengyel/Lengyel-Oblique.pdf
+            int dot = Math.Sign (Vector3.Dot (_destination.forward, _destination.position - transform.position));
+
+            Vector3 camSpacePos = _camera.worldToCameraMatrix.MultiplyPoint(_destination.position);
+            Vector3 camSpaceNormal = _camera.worldToCameraMatrix.MultiplyVector(_destination.forward) * dot;
+            float camSpaceDst = -Vector3.Dot (camSpacePos, camSpaceNormal) + nearClipOffset;
+
+            // Don't use oblique clip plane if very close to portal as it seems this can cause some visual artifacts
+            if (Mathf.Abs (camSpaceDst) > nearClipLimit) {
+                Vector4 clipPlaneCameraSpace = new Vector4 (camSpaceNormal.x, camSpaceNormal.y, camSpaceNormal.z, camSpaceDst);
+                _camera.projectionMatrix = _mainCamera.CalculateStereoObliqueMatrix(_eye, clipPlaneCameraSpace);
+            } else {
+                _camera.projectionMatrix = _mainCamera.GetStereoProjectionMatrix(_eye);
+            }
         }
 
         private void OnEnable()
@@ -71,6 +93,7 @@ namespace Scripts
             {
                 var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _portalTransform.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
                 transform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
+                SetNearClipPlane();
                 _camera.Render();
             }
         }

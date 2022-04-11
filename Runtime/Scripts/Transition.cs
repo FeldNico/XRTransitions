@@ -7,11 +7,16 @@ namespace Scripts
 {
     [Serializable]
     public abstract class Transition : MonoBehaviour
-
     {
+        [SerializeField]
+        private Transform _destination;
+        
+        public Transform Destination => _destination;
+        
         public UnityAction OnTransition;
 
         public UnityAction OnTransitionEnd;
+        
         
         public abstract bool IsTransitioning { get; protected set; }
 
