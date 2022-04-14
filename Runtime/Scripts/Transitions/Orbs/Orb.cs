@@ -12,6 +12,9 @@ public class Orb : MonoBehaviour
     private bool _isInitialized = false;
     private bool _isInitiated = false;
 
+    private XROrigin _xrOrigin;
+    private Transform _xrOriginTransform;
+    
     private OrbCamera _leftPortalCamera;
     private OrbCamera _rightPortalCamera;
 
@@ -20,6 +23,12 @@ public class Orb : MonoBehaviour
 
     private Transform _origin;
     public Transform Origin => _origin;
+
+    public void Awake()
+    {
+        _xrOrigin = FindObjectOfType<XROrigin>();
+        _xrOriginTransform = _xrOrigin.transform;
+    }
 
     public void Initialize(OrbTransition transition)
     {
@@ -48,19 +57,12 @@ public class Orb : MonoBehaviour
     {
         if (_isInitialized && _isInitiated)
         {
-            var pos = _destination.position;
-            pos.y = FindObjectOfType<XROrigin>().CameraYOffset;
-            _destination.position = pos;
-
+            
             if (Vector3.Distance(transform.position, _transition.Camera.transform.position) <= 0.2f)
             {
-                var xrOrigin = FindObjectOfType<XROrigin>();
-                var cameraTransform = _transition.Camera.transform;
+                _xrOriginTransform.position = _destination.position;
 
-                var diff = xrOrigin.transform.position - cameraTransform.transform.position;
-                xrOrigin.transform.position = _destination.position + diff;
                 DeInitiate();
-                _orbRenderer.enabled = false;
             }
         }
     }
@@ -78,6 +80,11 @@ public class Orb : MonoBehaviour
             _origin.parent = FindObjectOfType<XROrigin>().transform;
         }
 
+        foreach (Renderer child in GetComponentsInChildren<Renderer>(true))
+        {
+            child.enabled = true;
+        }
+        
         Transform cameraTransform = _transition.Camera.transform;
         _origin.position = cameraTransform.position;
         _origin.rotation = cameraTransform.rotation;
@@ -97,6 +104,10 @@ public class Orb : MonoBehaviour
         if (_origin != null)
         {
             Destroy(_origin.gameObject);
+        }
+        foreach (Renderer child in GetComponentsInChildren<Renderer>(true))
+        {
+            child.enabled = false;
         }
         _leftPortalCamera.StopRender();
         _rightPortalCamera.StopRender();

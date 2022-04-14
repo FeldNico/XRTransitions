@@ -103,18 +103,9 @@ public class OrbCamera : MonoBehaviour
     {
         if (_isInitialized && _doRender && InputState.currentUpdateType == InputUpdateType.BeforeRender && _orbRenderer.isVisible)
         {
-            transform.position = _destination.TransformPoint(_orb.Origin.InverseTransformPoint(_eyeTransform.position)) ;
+            transform.position = _destination.TransformPoint(_orb.Origin.InverseTransformPoint(_eyeTransform.position)) + Vector3.up * _orb.Origin.transform.position.y;
             
-            var rot = _eyeTransform.rotation;
-            transform.rotation = _destination.rotation * rot;
-            
-            /*
-            var localToWorldMatrix = _destination.localToWorldMatrix *
-                                     Matrix4x4.Rotate(Quaternion.AngleAxis(180f, Vector3.up)) *
-                                     _orbTransform.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
-            transform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3), localToWorldMatrix.rotation);
-            SetNearClipPlane();
-            */
+            transform.rotation = _destination.rotation * _eyeTransform.rotation;
             _camera.Render();
         }
     }

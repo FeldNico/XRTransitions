@@ -22,8 +22,7 @@ public class OrbTransition : Transition
     public Camera Camera => _camera;
     public Transform EyeLeftTransform => _eyeLeftTransform;
     public Transform EyeRightTransform => _eyeRightTransform;
-
-
+    
     private void Awake()
     {
         _transitionManager = FindObjectOfType<TransitionManager>();
@@ -38,11 +37,6 @@ public class OrbTransition : Transition
             IsTransitioning = true;
             OnTransition?.Invoke();
         }
-
-        traveller.Origin.position = (traveller.Origin.position - traveller.transform.position) + targetPosition;
-        targetRotation.ToAngleAxis(out var angle, out var axis);
-        traveller.Origin.RotateAround(traveller.transform.position, axis, angle);
-        Physics.SyncTransforms();
 
         if (traveller.IsPlayer())
         {
