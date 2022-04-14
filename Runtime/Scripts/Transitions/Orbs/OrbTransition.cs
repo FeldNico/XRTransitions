@@ -52,7 +52,8 @@ public class OrbTransition : Transition
             await Task.Yield();
         }
 
-        await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 10));
+        await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 300));
         _orb.Initialize(this);
+        Debug.Log("Init");
     }
 }

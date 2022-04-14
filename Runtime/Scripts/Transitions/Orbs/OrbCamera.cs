@@ -103,8 +103,7 @@ public class OrbCamera : MonoBehaviour
     {
         if (_isInitialized && _doRender && InputState.currentUpdateType == InputUpdateType.BeforeRender && _orbRenderer.isVisible)
         {
-            transform.position = _destination.TransformPoint(_orb.Origin.InverseTransformPoint(_eyeTransform.position)) + Vector3.up * _orb.Origin.transform.position.y;
-            
+            transform.position = _destination.TransformPoint(_orb.Origin.InverseTransformPoint(_eyeTransform.position)) + Vector3.up * _orb.Origin.transform.position.y + (_mainCameraTransform.position - _orb.Origin.position);
             transform.rotation = _destination.rotation * _eyeTransform.rotation;
             _camera.Render();
         }
