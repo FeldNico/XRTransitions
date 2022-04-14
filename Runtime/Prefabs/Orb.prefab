@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2209607658153371437}
   - component: {fileID: 2294554190410452774}
   m_Layer: 0
-  m_Name: Sphere (1)
+  m_Name: Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -127,6 +127,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _orbRenderer: {fileID: 4239847106588757968}
+  _initiateInput:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Initiate Input
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: e780f8d5-dbfe-42e4-934b-dd91216eb229
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 0}
 --- !u!1 &4239847106588757981
 GameObject:
   m_ObjectHideFlags: 0
