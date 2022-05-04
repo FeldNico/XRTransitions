@@ -61,6 +61,7 @@ public class Orb : MonoBehaviour
         }
 
         DeInitiate();
+        //Initiate();
     }
 
     private void Update()

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Scripts.Utils;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
@@ -48,7 +49,7 @@ public class OrbCamera : MonoBehaviour
         _mainCameraTransform = _mainCamera.transform;
         _camera.CopyFrom(_mainCamera);
         _camera.forceIntoRenderTexture = true;
-        _camera.targetTexture = new RenderTexture(_mainCamera.pixelWidth * 2, _mainCamera.pixelHeight * 2, 24);
+        _camera.targetTexture = new RenderTexture(_mainCamera.pixelWidth, _mainCamera.pixelHeight, 24);
         _camera.aspect = _mainCamera.aspect;
         _camera.fieldOfView = _mainCamera.fieldOfView;
         _camera.projectionMatrix = _mainCamera.GetStereoProjectionMatrix(eye);
@@ -66,14 +67,14 @@ public class OrbCamera : MonoBehaviour
         _isInitialized = true;
     }
 
-    void SetNearClipPlane()
+    private void SetNearClipPlane()
     {
         // Learning resource:
         // http://www.terathon.com/lengyel/Lengyel-Oblique.pdf
-        int dot = Math.Sign(Vector3.Dot(_destination.forward, _destination.position - transform.position));
+        int dot = Math.Sign(Vector3.Dot(_eyeTransform.forward, _destination.position - transform.position));
 
         Vector3 camSpacePos = _camera.worldToCameraMatrix.MultiplyPoint(_destination.position);
-        Vector3 camSpaceNormal = _camera.worldToCameraMatrix.MultiplyVector(_destination.forward) * dot;
+        Vector3 camSpaceNormal = _camera.worldToCameraMatrix.MultiplyVector(_eyeTransform.forward) * dot;
         float camSpaceDst = -Vector3.Dot(camSpacePos, camSpaceNormal) + nearClipOffset;
 
         // Don't use oblique clip plane if very close to portal as it seems this can cause some visual artifacts
@@ -103,8 +104,9 @@ public class OrbCamera : MonoBehaviour
     {
         if (_isInitialized && _doRender && InputState.currentUpdateType == InputUpdateType.BeforeRender && _orbRenderer.isVisible)
         {
-            transform.position = _destination.TransformPoint(_orb.Origin.InverseTransformPoint(_eyeTransform.position)) + Vector3.up * _orb.Origin.transform.position.y + (_mainCameraTransform.position - _orb.Origin.position);
+            transform.position = _destination.TransformPoint(_orbTransform.InverseTransformPoint(_eyeTransform.position))+ Vector3.up * _orbTransform.position.y;
             transform.rotation = _destination.rotation * _eyeTransform.rotation;
+            SetNearClipPlane();
             _camera.Render();
         }
     }
