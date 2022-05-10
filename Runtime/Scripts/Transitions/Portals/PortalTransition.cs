@@ -12,19 +12,8 @@ namespace Scripts
     {
         [SerializeField]
         private Portal _portal;
-        
-        private Camera _camera;
-        
-        private Transform _eyeLeftTransform;
-        
-        private Transform _eyeRightTransform;
-        
-        private TransitionManager _transitionManager;
 
-        private Portal Portal => _portal;
-        public Camera Camera => _camera;
-        public Transform EyeLeftTransform => _eyeLeftTransform;
-        public Transform EyeRightTransform => _eyeRightTransform;
+        private TransitionManager _transitionManager;
 
         public override bool IsTransitioning { get; protected set; }
 
@@ -48,11 +37,8 @@ namespace Scripts
             }
         }
 
-        public override async Task Initialization(Camera mainCamera, Transform leftEyeTransform, Transform rightEyeTransform)
+        public override async Task Initialization()
         {
-            _camera = mainCamera;
-            _eyeLeftTransform = leftEyeTransform;
-            _eyeRightTransform = rightEyeTransform;
             _transitionManager = Object.FindObjectOfType<TransitionManager>();
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
             {

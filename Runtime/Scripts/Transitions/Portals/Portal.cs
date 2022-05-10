@@ -14,7 +14,7 @@ public class Portal : MonoBehaviour
     [SerializeField]
     private Renderer _planeRenderer;
     public Renderer PlaneRenderer => _planeRenderer;
-    
+
     private PortalCamera _leftPortalCamera;
     private PortalCamera _rightPortalCamera;
 

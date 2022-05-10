@@ -16,6 +16,7 @@ public class OrbCamera : MonoBehaviour
     public float nearClipOffset = 0.05f;
     public float nearClipLimit = 0.2f;
 
+    private TransitionManager _transitionManager;
     private Orb _orb;
     private Camera _camera;
     private Camera _mainCamera;
@@ -31,6 +32,7 @@ public class OrbCamera : MonoBehaviour
 
     public void Initialize(Orb orb, OrbTransition transition, Camera.StereoscopicEye eye)
     {
+        _transitionManager = FindObjectOfType<TransitionManager>();
         _orb = orb;
         _orbTransform = orb.transform;
         transform.parent = _orbTransform;
@@ -45,7 +47,7 @@ public class OrbCamera : MonoBehaviour
             _camera = gameObject.AddComponent<Camera>();
         }
 
-        _mainCamera = transition.Camera;
+        _mainCamera = _transitionManager.MainCamera;
         _mainCameraTransform = _mainCamera.transform;
         _camera.CopyFrom(_mainCamera);
         _camera.forceIntoRenderTexture = true;
@@ -58,8 +60,8 @@ public class OrbCamera : MonoBehaviour
 
         _eye = eye;
         _eyeTransform = _eye == Camera.StereoscopicEye.Left
-            ? transition.EyeLeftTransform
-            : transition.EyeRightTransform;
+            ? _transitionManager.LeftEyeTransform
+            : _transitionManager.RightEyeTransform;
         _orbRenderer = orb.OrbRenderer;
         _orbRenderer.material.SetTexture(_eye == Camera.StereoscopicEye.Left ? LeftRenderTexture : RightRenderTexture,
             _camera.targetTexture);

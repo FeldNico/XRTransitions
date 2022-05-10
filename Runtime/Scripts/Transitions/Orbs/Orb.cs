@@ -15,6 +15,8 @@ public class Orb : MonoBehaviour
     private bool _isInitialized = false;
     private bool _isInitiated = false;
 
+    private TransitionManager _transitionManager;
+    
     private XROrigin _xrOrigin;
     private Transform _xrOriginTransform;
 
@@ -44,6 +46,7 @@ public class Orb : MonoBehaviour
 
     public void Initialize(OrbTransition transition)
     {
+        _transitionManager = FindObjectOfType<TransitionManager>();
         _transition = transition;
 
         _leftOrbCamera = new GameObject("LeftCamera").AddComponent<OrbCamera>();
@@ -68,7 +71,7 @@ public class Orb : MonoBehaviour
     {
         if (_isInitialized && _isInitiated)
         {
-            if (Vector3.Distance(transform.position, _transition.Camera.transform.position) <= 0.2f)
+            if (Vector3.Distance(transform.position, _transitionManager.MainCamera.transform.position) <= 0.2f)
             {
                 _xrOriginTransform.position = _destination.position;
 
@@ -90,7 +93,7 @@ public class Orb : MonoBehaviour
             _origin.parent = FindObjectOfType<XROrigin>().transform;
         }
 
-        Transform cameraTransform = _transition.Camera.transform;
+        Transform cameraTransform = _transitionManager.MainCamera.transform;
         _origin.position = cameraTransform.position;
         _origin.rotation = cameraTransform.rotation;
         _leftOrbCamera.StartRender();

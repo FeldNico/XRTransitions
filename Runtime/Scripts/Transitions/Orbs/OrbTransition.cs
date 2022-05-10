@@ -20,13 +20,6 @@ public class OrbTransition : Transition
     private TransitionManager _transitionManager;
 
     private Orb Orb => _orb;
-    public Camera Camera => _camera;
-    public Transform EyeLeftTransform => _eyeLeftTransform;
-    public Transform EyeRightTransform => _eyeRightTransform;
-
-    private void Awake()
-    {
-    }
 
     public override bool IsTransitioning { get; protected set; }
 
@@ -45,13 +38,12 @@ public class OrbTransition : Transition
         }
     }
 
-    public override async Task Initialization(Camera mainCamera, Transform leftEyeTransform,
-        Transform rightEyeTransform)
+    public override async Task Initialization()
     {
-        _camera = mainCamera;
-        _eyeLeftTransform = leftEyeTransform;
-        _eyeRightTransform = rightEyeTransform;
         _transitionManager = Object.FindObjectOfType<TransitionManager>();
+        _camera = _transitionManager.MainCamera;
+        _eyeLeftTransform = _transitionManager.LeftEyeTransform;
+        _eyeRightTransform = _transitionManager.RightEyeTransform;
         while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
         {
             await Task.Yield();

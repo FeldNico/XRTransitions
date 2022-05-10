@@ -12,9 +12,10 @@ namespace Scripts
     {
         private bool _isInitialized = false;
 
-        public float nearClipOffset = 0.05f;
-        public float nearClipLimit = 0.2f;
-        
+        private float nearClipOffset = 0.05f;
+        private float nearClipLimit = 0.2f;
+
+        private TransitionManager _transitionManager;
         private Camera _camera;
         private Camera _mainCamera;
         private Camera.StereoscopicEye _eye;
@@ -28,6 +29,7 @@ namespace Scripts
 
         public void Initialize(Portal portal, PortalTransition transition, Camera.StereoscopicEye eye)
         {
+            _transitionManager = FindObjectOfType<TransitionManager>();
             _portalTransform = portal.transform;
             transform.parent = _portalTransform;
             transform.localPosition = Vector3.zero;
@@ -40,7 +42,7 @@ namespace Scripts
             {
                 _camera = gameObject.AddComponent<Camera>();
             }
-            _mainCamera = transition.Camera;
+            _mainCamera = _transitionManager.MainCamera;
             _camera.CopyFrom(_mainCamera);
             _camera.forceIntoRenderTexture = true;
             _camera.targetTexture = new RenderTexture(_mainCamera.pixelWidth*2, _mainCamera.pixelHeight*2, 24);
@@ -52,8 +54,8 @@ namespace Scripts
 
             _eye = eye;
             _eyeTransform = _eye == Camera.StereoscopicEye.Left
-                ? transition.EyeLeftTransform
-                : transition.EyeRightTransform;
+                ? _transitionManager.LeftEyeTransform
+                : _transitionManager.RightEyeTransform;
             _portalPlaneRenderer = portal.PlaneRenderer;
             _portalPlaneRenderer.material.SetTexture(_eye == Camera.StereoscopicEye.Left ? LeftRenderTexture : RightRenderTexture, _camera.targetTexture);
 

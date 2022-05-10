@@ -19,6 +19,6 @@ namespace Scripts
         
         public abstract bool IsTransitioning { get; protected set; }
         public abstract Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation);
-        public abstract Task Initialization(Camera mainCamera, Transform leftEyeTransform, Transform rightEyeTransform);
+        public abstract Task Initialization();
     }
 }

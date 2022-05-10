@@ -33,7 +33,7 @@ public class TransitionManager : MonoBehaviour
         List<Task> tasks = new List<Task>();
         foreach (Transition transition in Transitions)
         {
-            tasks.Add(transition.Initialization(_mainCamera,_leftEyeTransform,_rightEyeTransform));
+            tasks.Add(transition.Initialization());
             transition.OnTransition += () =>
             {
                 _currentTransition = transition;

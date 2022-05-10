@@ -26,36 +26,51 @@ namespace Editor.Scripts
             EditorGUILayout.ObjectField(serializedObject.FindProperty("_mainCamera"));
             EditorGUILayout.ObjectField(serializedObject.FindProperty("_leftEyeTransform"));
             EditorGUILayout.ObjectField(serializedObject.FindProperty("_rightEyeTransform"));
-
+            
             _foldout = EditorGUILayout.Foldout(_foldout, "Transitions");
             if (_foldout)
             {
-                foreach (Type type in typeof(Transition).Assembly.GetTypes()
-                             .Where(t => t.IsSubclassOf(typeof(Transition))))
-                {
-                    if (GUILayout.Button("Add " + type.Name))
-                    {
-                        transitionManager.Transitions.Add(Activator.CreateInstance(type) as Transition);
-                        serializedObject.ApplyModifiedProperties();
-                    }
-                }
-
+                
                 EditorGUILayout.Separator();
 
-                EditorGUILayout.BeginVertical();
+                EditorGUI.indentLevel++;
                 var t = serializedObject.FindProperty("Transitions");
                 for (int i = 0; i < t.arraySize; i++)
                 {
                     var element = t.GetArrayElementAtIndex(i);
-                    EditorGUILayout.PropertyField(element, new GUIContent(element.managedReferenceValue.GetType().Name),
-                        true);
-                    if (GUILayout.Button("-"))
+                    if (element.managedReferenceValue == null)
                     {
                         transitionManager.Transitions.Remove(element.managedReferenceValue as Transition);
                     }
+                    else
+                    {
+                        EditorGUILayout.PropertyField(element, new GUIContent(element.managedReferenceValue.GetType().Name),
+                            true);
+                        EditorGUILayout.BeginHorizontal();
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button("-", EditorStyles.miniButtonRight, GUILayout.Width(80)))
+                        {
+                            transitionManager.Transitions.Remove(element.managedReferenceValue as Transition);
+                        }
+                        EditorGUILayout.EndHorizontal();
+                        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                    }
                 }
-
-                EditorGUILayout.EndVertical();
+                if (GUILayout.Button("+"))
+                {
+                    var menu = new GenericMenu();
+                    foreach (Type type in typeof(Transition).Assembly.GetTypes()
+                                 .Where(t => t.IsSubclassOf(typeof(Transition))))
+                    {
+                        menu.AddItem(new GUIContent(type.Name),false, t =>
+                        {
+                            transitionManager.Transitions.Add(Activator.CreateInstance(t as Type) as Transition);
+                            serializedObject.ApplyModifiedProperties();
+                        },type);
+                    }
+                    menu.ShowAsContext();
+                }
+                EditorGUI.indentLevel--;
             }
             serializedObject.ApplyModifiedProperties();
         }
