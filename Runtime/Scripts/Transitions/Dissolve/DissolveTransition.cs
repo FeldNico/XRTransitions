@@ -12,16 +12,13 @@ namespace Scripts
     public class DissolveTransition: Transition
     {
         [SerializeField] private GameObject DissolvePrefab;
-
-        [SerializeField]
+        
         private Camera _camera;
         public Camera Camera => _camera;
-
-        [SerializeField]
+        
         private Transform _eyeLeftTransform;
         public Transform EyeLeftTransform => _eyeLeftTransform;
-
-        [SerializeField]
+        
         private Transform _eyeRightTransform;
         public Transform EyeRightTransform => _eyeRightTransform;
         
@@ -35,7 +32,7 @@ namespace Scripts
 
         private void Awake()
         {
-            _transitionManager = FindObjectOfType<TransitionManager>();
+            
         }
         
         public override bool IsTransitioning { get; protected set; }
@@ -48,7 +45,7 @@ namespace Scripts
                 OnTransition?.Invoke();
             }
 
-            _dissolve = Instantiate(DissolvePrefab).GetComponent<Dissolve>();
+            _dissolve = Object.Instantiate(DissolvePrefab).GetComponent<Dissolve>();
             _dissolve.transform.parent = _camera.transform;
             _dissolve.transform.localPosition = new Vector3(0f, 0.5f, 0);
             _dissolve.transform.localRotation = Quaternion.identity;
@@ -77,8 +74,12 @@ namespace Scripts
             //_dissolve = null;
         }
 
-        public override async Task Initialization()
+        public override async Task Initialization(Camera mainCamera, Transform leftEyeTransform, Transform rightEyeTransform)
         {
+            _camera = mainCamera;
+            _eyeLeftTransform = leftEyeTransform;
+            _eyeRightTransform = rightEyeTransform;
+            _transitionManager = Object.FindObjectOfType<TransitionManager>();
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
             {
                 await Task.Yield();
@@ -89,8 +90,7 @@ namespace Scripts
         [MenuItem("Dissolve/Trigger")]
         public static void Trigger()
         {
-            FindObjectOfType<DissolveTransition>()
-                .TriggerTransition(FindObjectOfType<Traveller>(), Vector3.zero, Quaternion.identity);
+            
         }
     }
 }

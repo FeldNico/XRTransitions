@@ -5,16 +5,17 @@ using System.Threading.Tasks;
 using Scripts;
 using UnityEngine;
 using UnityEngine.XR.Management;
+using Object = UnityEngine.Object;
 
 public class OrbTransition : Transition
 {
     [SerializeField] private Orb _orb;
 
-    [SerializeField] private Camera _camera;
+    private Camera _camera;
 
-    [SerializeField] private Transform _eyeLeftTransform;
+    private Transform _eyeLeftTransform;
 
-    [SerializeField] private Transform _eyeRightTransform;
+    private Transform _eyeRightTransform;
 
     private TransitionManager _transitionManager;
 
@@ -22,10 +23,9 @@ public class OrbTransition : Transition
     public Camera Camera => _camera;
     public Transform EyeLeftTransform => _eyeLeftTransform;
     public Transform EyeRightTransform => _eyeRightTransform;
-    
+
     private void Awake()
     {
-        _transitionManager = FindObjectOfType<TransitionManager>();
     }
 
     public override bool IsTransitioning { get; protected set; }
@@ -45,8 +45,13 @@ public class OrbTransition : Transition
         }
     }
 
-    public override async Task Initialization()
+    public override async Task Initialization(Camera mainCamera, Transform leftEyeTransform,
+        Transform rightEyeTransform)
     {
+        _camera = mainCamera;
+        _eyeLeftTransform = leftEyeTransform;
+        _eyeRightTransform = rightEyeTransform;
+        _transitionManager = Object.FindObjectOfType<TransitionManager>();
         while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
         {
             await Task.Yield();
@@ -54,6 +59,5 @@ public class OrbTransition : Transition
 
         await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 300));
         _orb.Initialize(this);
-        Debug.Log("Init");
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine.Events;
 namespace Scripts
 {
     [Serializable]
-    public abstract class Transition : MonoBehaviour
+    public abstract class Transition
     {
         [SerializeField]
         private Transform _destination;
@@ -18,9 +18,7 @@ namespace Scripts
         public UnityAction OnTransitionEnd;
         
         public abstract bool IsTransitioning { get; protected set; }
-
         public abstract Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation);
-
-        public abstract Task Initialization();
+        public abstract Task Initialization(Camera mainCamera, Transform leftEyeTransform, Transform rightEyeTransform);
     }
 }

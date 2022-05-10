@@ -12,14 +12,11 @@ namespace Scripts
     {
         [SerializeField]
         private Portal _portal;
-
-        [SerializeField]
+        
         private Camera _camera;
-
-        [SerializeField]
+        
         private Transform _eyeLeftTransform;
-
-        [SerializeField]
+        
         private Transform _eyeRightTransform;
         
         private TransitionManager _transitionManager;
@@ -28,13 +25,7 @@ namespace Scripts
         public Camera Camera => _camera;
         public Transform EyeLeftTransform => _eyeLeftTransform;
         public Transform EyeRightTransform => _eyeRightTransform;
-        
 
-        private void Awake()
-        {
-            _transitionManager = FindObjectOfType<TransitionManager>();
-        }
-        
         public override bool IsTransitioning { get; protected set; }
 
         public override async Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
@@ -57,8 +48,12 @@ namespace Scripts
             }
         }
 
-        public override async Task Initialization()
+        public override async Task Initialization(Camera mainCamera, Transform leftEyeTransform, Transform rightEyeTransform)
         {
+            _camera = mainCamera;
+            _eyeLeftTransform = leftEyeTransform;
+            _eyeRightTransform = rightEyeTransform;
+            _transitionManager = Object.FindObjectOfType<TransitionManager>();
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
             {
                 await Task.Yield();
