@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Scripts;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -12,13 +13,9 @@ public class Orb : MonoBehaviour
     [SerializeField] private Renderer _orbRenderer;
     public Renderer OrbRenderer => _orbRenderer;
 
-    private bool _isInitialized = false;
-    private bool _isInitiated = false;
-
     private TransitionManager _transitionManager;
     
     private XROrigin _xrOrigin;
-    private Transform _xrOriginTransform;
 
     private OrbCamera _leftOrbCamera;
     private OrbCamera _rightOrbCamera;
@@ -27,104 +24,45 @@ public class Orb : MonoBehaviour
     private Transform _destination;
 
     private Transform _origin;
-    public Transform Origin => _origin;
-
-    private Vector3 _originalPosition;
 
     public void Awake()
     {
         _xrOrigin = FindObjectOfType<XROrigin>();
-        _xrOriginTransform = _xrOrigin.transform;
-        _originalPosition = transform.position;
+        _transitionManager = FindObjectOfType<TransitionManager>();
         
-        foreach (var child in GetComponentsInChildren<Renderer>(true))
-        {
-            child.enabled = false;
-        }
-
+        _leftOrbCamera = new GameObject("LeftCamera").AddComponent<OrbCamera>();
+        _rightOrbCamera = new GameObject("RightCamera").AddComponent<OrbCamera>();
+        
+        _origin = new GameObject("OrbOriginDummy").transform;
+        _origin.parent = FindObjectOfType<XROrigin>().transform;
+        
+        Transform cameraTransform = _transitionManager.MainCamera.transform;
+        _origin.position = cameraTransform.position;
+        _origin.rotation = cameraTransform.rotation;
     }
 
     public void Initialize(OrbTransition transition)
     {
-        _transitionManager = FindObjectOfType<TransitionManager>();
         _transition = transition;
-
-        _leftOrbCamera = new GameObject("LeftCamera").AddComponent<OrbCamera>();
-        _leftOrbCamera.Initialize(this, transition, Camera.StereoscopicEye.Left);
-
-        _rightOrbCamera = new GameObject("RightCamera").AddComponent<OrbCamera>();
-        _rightOrbCamera.Initialize(this, transition, Camera.StereoscopicEye.Right);
-
         _destination = transition.Destination;
-        _isInitialized = true;
-
-        foreach (var child in GetComponentsInChildren<Renderer>(true))
-        {
-            child.enabled = true;
-        }
-
-        DeInitiate();
-        //Initiate();
+        
+        _leftOrbCamera.Initialize(this, transition, Camera.StereoscopicEye.Left);
+        _rightOrbCamera.Initialize(this, transition, Camera.StereoscopicEye.Right);
     }
 
     private void Update()
     {
-        if (_isInitialized && _isInitiated)
+        if (Vector3.Distance(transform.position, _transitionManager.MainCamera.transform.position) <= 0.2f)
         {
-            if (Vector3.Distance(transform.position, _transitionManager.MainCamera.transform.position) <= 0.2f)
-            {
-                _xrOriginTransform.position = _destination.position;
-
-                DeInitiate();
-            }
+            _transition.TriggerTransition(Traveller.GetPlayerTraveller(), _destination.position,
+                Quaternion.AngleAxis(180f, Vector3.up));
         }
     }
 
-    public void Initiate()
+    public void OnDestroy()
     {
-        if (!_isInitialized)
-        {
-            return;
-        }
-
-        if (_origin == null)
-        {
-            _origin = new GameObject("OrbOriginDummy").transform;
-            _origin.parent = FindObjectOfType<XROrigin>().transform;
-        }
-
-        Transform cameraTransform = _transitionManager.MainCamera.transform;
-        _origin.position = cameraTransform.position;
-        _origin.rotation = cameraTransform.rotation;
-        _leftOrbCamera.StartRender();
-        _rightOrbCamera.StartRender();
-        _isInitiated = true;
-    }
-
-    public void DeInitiate()
-    {
-        if (!_isInitialized)
-        {
-            return;
-        }
-
-        var grab = GetComponent<XRGrabInteractable>();
-        if (grab.isSelected)
-        {
-            grab.interactionManager.CancelInteractableSelection(grab);
-        }
-
-        transform.position = _originalPosition;
-        GetComponent<Rigidbody>().velocity = Vector3.zero;
-        GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
-
-        if (_origin != null)
-        {
-            Destroy(_origin.gameObject);
-        }
-
-        _leftOrbCamera.StopRender();
-        _rightOrbCamera.StopRender();
-        _isInitiated = false;
+        Destroy(_origin.gameObject);
+        Destroy(_leftOrbCamera.gameObject);
+        Destroy(_rightOrbCamera.gameObject);
     }
 }

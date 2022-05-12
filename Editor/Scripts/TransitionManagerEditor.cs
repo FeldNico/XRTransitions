@@ -23,6 +23,7 @@ namespace Editor.Scripts
             }
 
             serializedObject.Update();
+            EditorGUILayout.ObjectField(serializedObject.FindProperty("_currentContext"));
             EditorGUILayout.ObjectField(serializedObject.FindProperty("_mainCamera"));
             EditorGUILayout.ObjectField(serializedObject.FindProperty("_leftEyeTransform"));
             EditorGUILayout.ObjectField(serializedObject.FindProperty("_rightEyeTransform"));

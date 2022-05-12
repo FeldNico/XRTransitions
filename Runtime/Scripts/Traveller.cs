@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Linq;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 
 namespace Scripts
 {
-    public class TransitionTraveller : MonoBehaviour
+    public class Traveller : MonoBehaviour
     {
         [SerializeField]
         private Transform _origin;
         public Transform Origin => _origin;
 
         private Vector3 _lastPosition;
-        public Vector3 LastPosition => LastPosition;
+        public Vector3 LastPosition => _lastPosition;
         
         private void Awake()
         {
@@ -36,6 +37,17 @@ namespace Scripts
             }
 
             return _isTravellerPlayer.Value;
+        }
+
+        private static Traveller _playerTraveller;
+        public static Traveller GetPlayerTraveller()
+        {
+            if (_playerTraveller == null)
+            {
+                _playerTraveller = FindObjectsOfType<Traveller>().FirstOrDefault(traveller => traveller.IsPlayer());
+            }
+
+            return _playerTraveller;
         }
     }
 }

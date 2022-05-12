@@ -10,8 +10,6 @@ using UnityEngine.InputSystem.LowLevel;
 public class OrbCamera : MonoBehaviour
 {
     private bool _isInitialized = false;
-    private bool _doRender = false;
-    public bool IsRendering => _doRender;
 
     public float nearClipOffset = 0.05f;
     public float nearClipLimit = 0.2f;
@@ -104,22 +102,12 @@ public class OrbCamera : MonoBehaviour
 
     private void RenderPortal()
     {
-        if (_isInitialized && _doRender && InputState.currentUpdateType == InputUpdateType.BeforeRender && _orbRenderer.isVisible)
+        if (_isInitialized && InputState.currentUpdateType == InputUpdateType.BeforeRender && _orbRenderer.isVisible)
         {
             transform.position = _destination.TransformPoint(_orbTransform.InverseTransformPoint(_eyeTransform.position))+ Vector3.up * _orbTransform.position.y;
             transform.rotation = _destination.rotation * _eyeTransform.rotation;
             SetNearClipPlane();
             _camera.Render();
         }
-    }
-
-    public void StartRender()
-    {
-        _doRender = true;
-    }
-
-    public void StopRender()
-    {
-        _doRender = false;
     }
 }

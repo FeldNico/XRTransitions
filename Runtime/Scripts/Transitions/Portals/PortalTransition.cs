@@ -6,46 +6,39 @@ using Object = UnityEngine.Object;
 
 namespace Scripts
 {
-    
-    [Serializable]
     public class PortalTransition: Transition
     {
         [SerializeField]
         private Portal _portal;
-
-        private TransitionManager _transitionManager;
-
-        public override bool IsTransitioning { get; protected set; }
-
-        public override async Task TriggerTransition(TransitionTraveller transitionTraveller, Vector3 targetPosition, Quaternion targetRotation)
-        {
-            if (transitionTraveller.IsPlayer())
-            {
-                IsTransitioning = true;
-                OnTransition?.Invoke();
-            }
-
-            transitionTraveller.Origin.position = (transitionTraveller.Origin.position - transitionTraveller.transform.position) + targetPosition;
-            targetRotation.ToAngleAxis(out var angle, out var axis);
-            transitionTraveller.Origin.RotateAround(transitionTraveller.transform.position,axis,angle);
-            Physics.SyncTransforms();
-
-            if (transitionTraveller.IsPlayer())
-            {
-                IsTransitioning = false;
-                OnTransitionEnd?.Invoke();
-            }
-        }
+        private Context _startContext;
 
         public override async Task Initialization()
         {
-            _transitionManager = Object.FindObjectOfType<TransitionManager>();
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
             {
                 await Task.Yield();
             }
             await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 10));
             _portal.Initialize(this);
+        }
+        
+        internal override Task OnTriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
+        {
+            traveller.Origin.position = (traveller.Origin.position - traveller.transform.position) + targetPosition;
+            targetRotation.ToAngleAxis(out var angle, out var axis);
+            traveller.Origin.RotateAround(traveller.transform.position,axis,angle);
+            Physics.SyncTransforms();
+            return Task.CompletedTask;
+        }
+        
+        public override Context GetStartContext()
+        {
+            if (_startContext == null)
+            {
+                _startContext = _portal.GetComponentInParent<Context>();
+            }
+
+            return _startContext;
         }
     }
 }

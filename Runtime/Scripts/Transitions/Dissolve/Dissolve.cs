@@ -26,6 +26,7 @@ public class Dissolve : MonoBehaviour
         {
             _planeRenderer = transform.Find("RenderPlane").GetComponent<MeshRenderer>();
         }
+        
     }
 
     public void Initialize(DissolveTransition transition)

@@ -1,38 +1,29 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Management;
+using Object = UnityEngine.Object;
 
 namespace Scripts.Transitions.Cut
 {
     public class CutTransition : Transition
     {
-        public override bool IsTransitioning { get; protected set; }
+        [SerializeField]
+        private Context _startContext;
+        [SerializeField]
+        private InputActionProperty _initiateAction;
 
-        public InputActionProperty InitiateAction;
-
-        public override async Task TriggerTransition(TransitionTraveller transitionTraveller, Vector3 targetPosition,
+        internal override async Task OnTriggerTransition(Traveller traveller, Vector3 targetPosition,
             Quaternion targetRotation)
         {
-            if (transitionTraveller.IsPlayer())
-            {
-                IsTransitioning = true;
-                OnTransition?.Invoke();
-            }
-
-            transitionTraveller.Origin.position =
-                (transitionTraveller.Origin.position - transitionTraveller.transform.position) + targetPosition;
+            traveller.Origin.position =
+                (traveller.Origin.position - traveller.transform.position) + targetPosition;
             targetRotation.ToAngleAxis(out var angle, out var axis);
-            transitionTraveller.Origin.RotateAround(transitionTraveller.transform.position, axis, angle);
-            Physics.SyncTransforms();
-
-            if (transitionTraveller.IsPlayer())
-            {
-                IsTransitioning = false;
-                OnTransitionEnd?.Invoke();
-            }
+            traveller.Origin.RotateAround(traveller.transform.position, axis, angle);
         }
 
         public override async Task Initialization()
@@ -42,7 +33,23 @@ namespace Scripts.Transitions.Cut
                 await Task.Yield();
             }
             await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 10));
-            InitiateAction.EnableDirectAction();
+            _initiateAction.EnableDirectAction();
+        }
+        
+        public override Context GetStartContext()
+        {
+            return _startContext;
+        }
+        
+        [MenuItem("Transition/Cut")]
+        public static async void Trigger()
+        {
+            var transitionManager = Object.FindObjectOfType<TransitionManager>();
+            var transition =
+                transitionManager.Transitions.First(transition => transition.GetType() == typeof(CutTransition));
+            await transition.Initialization();
+            transition.TriggerTransition(Traveller.GetPlayerTraveller(), transition.Destination.position,
+                Quaternion.identity* Quaternion.AngleAxis(180f,Vector3.up));
         }
     }
 }

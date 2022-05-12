@@ -10,6 +10,9 @@ namespace Scripts
 {
     public class PortalCamera : MonoBehaviour
     {
+        private static readonly int LeftRenderTexture = Shader.PropertyToID("_LeftEyeTexture");
+        private static readonly int RightRenderTexture = Shader.PropertyToID("_RightEyeTexture");
+        
         private bool _isInitialized = false;
 
         private float nearClipOffset = 0.05f;
@@ -23,9 +26,6 @@ namespace Scripts
         private Transform _eyeTransform;
         private Transform _portalTransform;
         private Transform _destination;
-        
-        private static readonly int LeftRenderTexture = Shader.PropertyToID("_LeftEyeTexture");
-        private static readonly int RightRenderTexture = Shader.PropertyToID("_RightEyeTexture");
 
         public void Initialize(Portal portal, PortalTransition transition, Camera.StereoscopicEye eye)
         {

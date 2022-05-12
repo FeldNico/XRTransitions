@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Scripts;
 using UnityEditor;
@@ -9,49 +10,51 @@ using UnityEngine.UI;
 public class TransitionManager : MonoBehaviour
 {
 
-    [SerializeField]
-    private Camera _mainCamera;
-    public Camera MainCamera => _mainCamera;
-    
-    [SerializeField]
-    private Transform _leftEyeTransform;
-    public Transform LeftEyeTransform => _leftEyeTransform;
-    
-    [SerializeField]
-    private Transform _rightEyeTransform;
-    public Transform RightEyeTransform => _rightEyeTransform;
-
-    private Transition _currentTransition = null;
-    
     [SerializeReference]
     public List<Transition> Transitions;
-
-    public Transition CurrentTransition => _currentTransition;
+    public Camera MainCamera => _mainCamera;
+    public Transform LeftEyeTransform => _leftEyeTransform;
+    public Transform RightEyeTransform => _rightEyeTransform;
+    public Context CurrentContext => _currentContext;
     
-    private async void Initialization()
+    [SerializeField]
+    private Camera _mainCamera;
+    [SerializeField]
+    private Transform _leftEyeTransform;
+    [SerializeField]
+    private Transform _rightEyeTransform;
+    [SerializeReference]
+    private Context _currentContext;
+
+    private void Awake()
     {
-        List<Task> tasks = new List<Task>();
-        foreach (Transition transition in Transitions)
+        if (_currentContext == null)
         {
-            tasks.Add(transition.Initialization());
-            transition.OnTransition += () =>
-            {
-                _currentTransition = transition;
-            };
-            transition.OnTransitionEnd += () =>
-            {
-                if (_currentTransition == transition)
-                {
-                    _currentTransition = null;
-                }
-            };
+            Debug.LogError("No Current Context was defined. Please assign Current Context at your TransitionManager");
         }
 
-        await Task.WhenAll(tasks);
+        Context.OnExit += context =>
+        {
+            if (_currentContext == context)
+            {
+                _currentContext = null;
+            }
+        };
+        
+        Context.OnEnter += context =>
+        {
+            _currentContext = context;
+        };
     }
-
+    
     private void Start()
     {
         Initialization();
+    }
+
+    private async void Initialization()
+    {
+        var tasks = Transitions.Select(transition => transition.Initialization());
+        await Task.WhenAll(tasks);
     }
 }
