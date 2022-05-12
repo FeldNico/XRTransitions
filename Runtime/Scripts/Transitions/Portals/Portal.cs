@@ -20,7 +20,7 @@ public class Portal : MonoBehaviour
 
     private PortalTransition _transition;
     private Transform _destination;
-    private Dictionary<PortalTraveller,List<(Transform,Transform)>> _travellersDict = new Dictionary<PortalTraveller,List<(Transform,Transform)>>();
+    private Dictionary<TransitionTraveller,List<(Transform,Transform)>> _travellersDict = new();
 
     private void Awake()
     {
@@ -66,28 +66,28 @@ public class Portal : MonoBehaviour
         
         for (int i = 0; i < _travellersDict.Count; i++)
         {
-            PortalTraveller traveller = travellers[i];
+            TransitionTraveller transitionTraveller = travellers[i];
 
-            if (FrontOfPortal(traveller.LastPosition) && !FrontOfPortal(traveller.transform.position))
+            if (FrontOfPortal(transitionTraveller.LastPosition) && !FrontOfPortal(transitionTraveller.transform.position))
             {
                 var m = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * transform.worldToLocalMatrix *
-                        traveller.transform.localToWorldMatrix;
+                        transitionTraveller.transform.localToWorldMatrix;
                 Vector3 targetPosition = m.GetColumn(3);
                 Quaternion targetRotation =
                     Quaternion.FromToRotation(transform.forward, _destination.forward) *
                     Quaternion.AngleAxis(180f, Vector3.up);
-                await _transition.TriggerTransition(traveller,targetPosition,targetRotation);
-                foreach (var (_, dummyTransform) in _travellersDict[traveller])
+                await _transition.TriggerTransition(transitionTraveller,targetPosition,targetRotation);
+                foreach (var (_, dummyTransform) in _travellersDict[transitionTraveller])
                 {
                     Destroy(dummyTransform.gameObject);
                 }
-                _travellersDict[traveller].Clear();
-                _travellersDict.Remove(traveller);
+                _travellersDict[transitionTraveller].Clear();
+                _travellersDict.Remove(transitionTraveller);
                 i--;
             }
             else
             {
-                foreach (var (originalTransform, dummyTransform) in _travellersDict[traveller])
+                foreach (var (originalTransform, dummyTransform) in _travellersDict[transitionTraveller])
                 {
                     var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * transform.worldToLocalMatrix * originalTransform.localToWorldMatrix;
                     dummyTransform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
@@ -98,7 +98,7 @@ public class Portal : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        PortalTraveller traveller = other.GetComponent<PortalTraveller>();
+        TransitionTraveller traveller = other.GetComponent<TransitionTraveller>();
         if (traveller && !_travellersDict.Keys.Contains(traveller))
         {
             _travellersDict.Add(traveller,new List<(Transform, Transform)>());
@@ -119,7 +119,7 @@ public class Portal : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        PortalTraveller traveller = other.GetComponent<PortalTraveller>();
+        TransitionTraveller traveller = other.GetComponent<TransitionTraveller>();
         if (traveller && _travellersDict.Keys.Contains(traveller))
         {
             foreach (var (_, dummyTransform) in _travellersDict[traveller])

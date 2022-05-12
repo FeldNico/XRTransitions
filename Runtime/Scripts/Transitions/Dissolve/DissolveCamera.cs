@@ -48,7 +48,7 @@ namespace Scripts
             _mainCamera = _transitionManager.MainCamera;
             _camera.CopyFrom(_mainCamera);
             _camera.forceIntoRenderTexture = true;
-            _camera.targetTexture = new RenderTexture(_mainCamera.pixelWidth*2, _mainCamera.pixelHeight*2, 24);
+            _camera.targetTexture = new RenderTexture(_mainCamera.pixelWidth, _mainCamera.pixelHeight, 24);
             _camera.aspect = _mainCamera.aspect;
             _camera.fieldOfView = _mainCamera.fieldOfView;
             _camera.projectionMatrix = _mainCamera.GetStereoProjectionMatrix(eye);

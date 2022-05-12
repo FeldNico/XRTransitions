@@ -23,15 +23,15 @@ public class OrbTransition : Transition
 
     public override bool IsTransitioning { get; protected set; }
 
-    public override async Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
+    public override async Task TriggerTransition(TransitionTraveller transitionTraveller, Vector3 targetPosition, Quaternion targetRotation)
     {
-        if (traveller.IsPlayer())
+        if (transitionTraveller.IsPlayer())
         {
             IsTransitioning = true;
             OnTransition?.Invoke();
         }
 
-        if (traveller.IsPlayer())
+        if (transitionTraveller.IsPlayer())
         {
             IsTransitioning = false;
             OnTransitionEnd?.Invoke();

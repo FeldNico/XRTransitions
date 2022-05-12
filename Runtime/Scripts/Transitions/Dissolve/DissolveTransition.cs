@@ -24,9 +24,9 @@ namespace Scripts
 
         public override bool IsTransitioning { get; protected set; }
 
-        public override async Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
+        public override async Task TriggerTransition(TransitionTraveller transitionTraveller, Vector3 targetPosition, Quaternion targetRotation)
         {
-            if (traveller.IsPlayer())
+            if (transitionTraveller.IsPlayer())
             {
                 IsTransitioning = true;
                 OnTransition?.Invoke();
@@ -46,12 +46,12 @@ namespace Scripts
             }
             _dissolve.PlaneRenderer.material.SetFloat(Alpha,1);
             
-            traveller.Origin.position = (traveller.Origin.position - traveller.transform.position) + targetPosition;
+            transitionTraveller.Origin.position = (transitionTraveller.Origin.position - transitionTraveller.transform.position) + targetPosition;
             targetRotation.ToAngleAxis(out var angle, out var axis);
-            traveller.Origin.RotateAround(traveller.transform.position,axis,angle);
+            transitionTraveller.Origin.RotateAround(transitionTraveller.transform.position,axis,angle);
             Physics.SyncTransforms();
 
-            if (traveller.IsPlayer())
+            if (transitionTraveller.IsPlayer())
             {
                 IsTransitioning = false;
                 OnTransitionEnd?.Invoke();
@@ -66,9 +66,9 @@ namespace Scripts
             _transitionManager = Object.FindObjectOfType<TransitionManager>();
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
             {
-                await Task.Yield();
+                await Task.Delay(1);
             }
-            await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 10));
+            //await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 10));
         }
 
         [MenuItem("Dissolve/Trigger")]
@@ -78,8 +78,8 @@ namespace Scripts
             var transition =
                 transitionManager.Transitions.First(transition => transition.GetType() == typeof(DissolveTransition));
             await transition.Initialization();
-            transition.TriggerTransition(Object.FindObjectOfType<DissolveTraveller>(), transition.Destination.position,
-                Quaternion.identity);
+            transition.TriggerTransition(Object.FindObjectOfType<TransitionTraveller>(), transition.Destination.position,
+                Quaternion.identity* Quaternion.AngleAxis(180f,Vector3.up));
         }
     }
 }
