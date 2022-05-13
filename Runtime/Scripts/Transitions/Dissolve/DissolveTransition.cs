@@ -37,7 +37,7 @@ namespace Scripts
         {
             _dissolve = Object.Instantiate(DissolvePrefab).GetComponent<Dissolve>();
             _dissolve.transform.parent = _transitionManager.MainCamera.transform;
-            _dissolve.transform.localPosition = new Vector3(0f, 0f, 0.5f);
+            _dissolve.transform.localPosition = new Vector3(0f, 0f, _transitionManager.MainCamera.nearClipPlane+0.01f);
             _dissolve.transform.localRotation = Quaternion.AngleAxis(180,Vector3.up);
             _dissolve.Initialize(this);
 
