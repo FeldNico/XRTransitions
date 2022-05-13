@@ -13,7 +13,7 @@ namespace Scripts
         
         [SerializeField]
         private Transform _destination;
-        private TransitionManager _transitionManager;
+        private TransitionManager _manager;
         private Context _targetContext;
         
         public abstract Task Initialization();
@@ -31,12 +31,12 @@ namespace Scripts
         
         public async Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
         {
-            if (_transitionManager == null)
+            if (_manager == null)
             {
-                _transitionManager = Object.FindObjectOfType<TransitionManager>();
+                _manager = Object.FindObjectOfType<TransitionManager>();
             }
 
-            if (_transitionManager.CurrentContext != GetStartContext())
+            if (_manager.CurrentContext != GetStartContext())
             {
                 return;
             }

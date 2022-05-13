@@ -21,7 +21,7 @@ namespace Scripts
         private Camera.StereoscopicEye _eye;
         private Renderer _dissolvePlaneRenderer;
         private Transform _eyeTransform;
-        private Transform _dissolveTransform;
+        private Transform _originTransform;
         private Transform _destination;
         
         private static readonly int LeftRenderTexture = Shader.PropertyToID("_LeftEyeTexture");
@@ -34,7 +34,7 @@ namespace Scripts
 
         public void Initialize(Dissolve dissolve, DissolveTransition transition, Camera.StereoscopicEye eye)
         {
-            _dissolveTransform = dissolve.transform;
+            _originTransform = dissolve.Origin;
             _destination = transition.Destination;
             transform.parent = _destination;
             transform.localPosition = Vector3.zero;
@@ -97,7 +97,7 @@ namespace Scripts
         {
             if (_isInitialized && InputState.currentUpdateType == InputUpdateType.BeforeRender )
             {
-                var localToWorldMatrix = _destination.localToWorldMatrix * FindObjectOfType<XROrigin>().transform.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
+                var localToWorldMatrix = _destination.localToWorldMatrix * _originTransform.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
                 transform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
                 //SetNearClipPlane();
                 _camera.Render();

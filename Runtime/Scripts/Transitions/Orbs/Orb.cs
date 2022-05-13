@@ -35,10 +35,9 @@ public class Orb : MonoBehaviour
         
         _origin = new GameObject("OrbOriginDummy").transform;
         _origin.parent = FindObjectOfType<XROrigin>().transform;
-        
         Transform cameraTransform = _transitionManager.MainCamera.transform;
         _origin.position = cameraTransform.position;
-        _origin.rotation = cameraTransform.rotation;
+        _origin.rotation = Quaternion.identity;
     }
 
     public void Initialize(OrbTransition transition)

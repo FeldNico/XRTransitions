@@ -125,4 +125,10 @@ public class Portal : MonoBehaviour
             _travellersDict.Remove(traveller);
         }
     }
+
+    private void OnDestroy()
+    {
+        Destroy(_leftPortalCamera.gameObject);
+        Destroy(_rightPortalCamera.gameObject);
+    }
 }

@@ -35,6 +35,9 @@ namespace Scripts
 
         internal override async Task OnTriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
         {
+            Destination.transform.position = new Vector3(Destination.transform.position.x,
+                _transitionManager.MainCamera.transform.position.y, Destination.transform.position.z);
+            
             _dissolve = Object.Instantiate(DissolvePrefab).GetComponent<Dissolve>();
             _dissolve.transform.parent = _transitionManager.MainCamera.transform;
             _dissolve.transform.localPosition = new Vector3(0f, 0f, _transitionManager.MainCamera.nearClipPlane+0.01f);
