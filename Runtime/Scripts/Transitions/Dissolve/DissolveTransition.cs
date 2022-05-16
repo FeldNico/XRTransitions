@@ -33,7 +33,7 @@ namespace Scripts
         private Dissolve _dissolve;
         private TransitionManager _transitionManager;
 
-        internal override async Task OnTriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
+        internal override async Task OnTriggerTransition()
         {
             Destination.transform.position = new Vector3(Destination.transform.position.x,
                 _transitionManager.MainCamera.transform.position.y, Destination.transform.position.z);
@@ -43,6 +43,7 @@ namespace Scripts
             _dissolve.transform.localPosition = new Vector3(0f, 0f, _transitionManager.MainCamera.nearClipPlane+0.01f);
             _dissolve.transform.localRotation = Quaternion.AngleAxis(180,Vector3.up);
             _dissolve.Initialize(this);
+            _dissolve.PlaneRenderer.material.SetFloat(Alpha,0f);
 
             var startTime = Time.time;
             while (Time.time <= startTime + Duration)
@@ -52,9 +53,10 @@ namespace Scripts
             }
             _dissolve.PlaneRenderer.material.SetFloat(Alpha,1);
             
-            traveller.Origin.position = (traveller.Origin.position - traveller.transform.position) + targetPosition;
-            targetRotation.ToAngleAxis(out var angle, out var axis);
-            traveller.Origin.RotateAround(traveller.transform.position,axis,angle);
+            _transitionManager.XROrigin.MoveCameraToWorldLocation(Destination.position);
+            var rotDiff = Destination.rotation * Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
+            rotDiff.ToAngleAxis(out var angle, out var axis);
+            _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
 
             Object.Destroy(_dissolve.gameObject);
             _dissolve = null;
@@ -71,8 +73,7 @@ namespace Scripts
             _initiateAction.EnableDirectAction();
             _initiateAction.action.performed += _ =>
             {
-                TriggerTransition(Traveller.GetPlayerTraveller(), Destination.position,
-                    Quaternion.identity* Quaternion.AngleAxis(180f,Vector3.up));
+                TriggerTransition();
             };
         }
         
@@ -88,8 +89,7 @@ namespace Scripts
             var transition =
                 transitionManager.Transitions.First(transition => transition.GetType() == typeof(DissolveTransition));
             await transition.Initialization();
-            transition.TriggerTransition(Traveller.GetPlayerTraveller(), transition.Destination.position,
-                Quaternion.identity* Quaternion.AngleAxis(180f,Vector3.up));
+            transition.TriggerTransition();
         }
     }
 }

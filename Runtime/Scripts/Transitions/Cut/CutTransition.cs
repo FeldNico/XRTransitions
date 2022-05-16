@@ -17,17 +17,19 @@ namespace Scripts.Transitions.Cut
         [SerializeField]
         private InputActionProperty _initiateAction;
 
-        internal override async Task OnTriggerTransition(Traveller traveller, Vector3 targetPosition,
-            Quaternion targetRotation)
+        private TransitionManager _transitionManager;
+        
+        internal override async Task OnTriggerTransition()
         {
-            traveller.Origin.position =
-                (traveller.Origin.position - traveller.transform.position) + targetPosition;
-            targetRotation.ToAngleAxis(out var angle, out var axis);
-            traveller.Origin.RotateAround(traveller.transform.position, axis, angle);
+            _transitionManager.XROrigin.MoveCameraToWorldLocation(Destination.position);
+            var rotDiff = Destination.rotation * Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
+            rotDiff.ToAngleAxis(out var angle, out var axis);
+            _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
         }
 
         public override async Task Initialization()
         {
+            _transitionManager = Object.FindObjectOfType<TransitionManager>();
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
             {
                 await Task.Yield();
@@ -48,8 +50,7 @@ namespace Scripts.Transitions.Cut
             var transition =
                 transitionManager.Transitions.First(transition => transition.GetType() == typeof(CutTransition));
             await transition.Initialization();
-            transition.TriggerTransition(Traveller.GetPlayerTraveller(), transition.Destination.position,
-                Quaternion.identity* Quaternion.AngleAxis(180f,Vector3.up));
+            transition.TriggerTransition();
         }
     }
 }

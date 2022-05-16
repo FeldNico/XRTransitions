@@ -12,39 +12,35 @@ public class Orb : MonoBehaviour
 {
     [SerializeField] private Renderer _orbRenderer;
     public Renderer OrbRenderer => _orbRenderer;
+    public Transform LocalDummy => _localDummy;
 
     private TransitionManager _transitionManager;
-    
-    private XROrigin _xrOrigin;
 
     private OrbCamera _leftOrbCamera;
     private OrbCamera _rightOrbCamera;
 
     private OrbTransition _transition;
-    private Transform _destination;
 
-    private Transform _origin;
+    private Transform _localDummy;
 
     public void Awake()
     {
-        _xrOrigin = FindObjectOfType<XROrigin>();
         _transitionManager = FindObjectOfType<TransitionManager>();
         
         _leftOrbCamera = new GameObject("LeftCamera").AddComponent<OrbCamera>();
         _rightOrbCamera = new GameObject("RightCamera").AddComponent<OrbCamera>();
-        
-        _origin = new GameObject("OrbOriginDummy").transform;
-        _origin.parent = FindObjectOfType<XROrigin>().transform;
-        Transform cameraTransform = _transitionManager.MainCamera.transform;
-        _origin.position = cameraTransform.position;
-        _origin.rotation = Quaternion.identity;
     }
 
     public void Initialize(OrbTransition transition)
     {
         _transition = transition;
-        _destination = transition.Destination;
-        
+
+        _localDummy = new GameObject("OrbLocalDummy").transform;
+        var camPos = _transitionManager.MainCamera.transform.position;
+        camPos.y = _transitionManager.XROrigin.transform.position.y;
+        _localDummy.position = camPos;
+        _localDummy.rotation = Quaternion.identity;
+
         _leftOrbCamera.Initialize(this, transition, Camera.StereoscopicEye.Left);
         _rightOrbCamera.Initialize(this, transition, Camera.StereoscopicEye.Right);
     }
@@ -53,14 +49,13 @@ public class Orb : MonoBehaviour
     {
         if (Vector3.Distance(transform.position, _transitionManager.MainCamera.transform.position) <= 0.2f)
         {
-            _transition.TriggerTransition(Traveller.GetPlayerTraveller(), _destination.position,
-                Quaternion.AngleAxis(180f, Vector3.up));
+            _transition.TriggerTransition();
         }
     }
 
     public void OnDestroy()
     {
-        Destroy(_origin.gameObject);
+        Destroy(_localDummy.gameObject);
         Destroy(_leftOrbCamera.gameObject);
         Destroy(_rightOrbCamera.gameObject);
     }

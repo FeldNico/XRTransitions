@@ -14,7 +14,7 @@ namespace Scripts.Transformation
             throw new System.NotImplementedException();
         }
 
-        internal override Task OnTriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
+        internal override Task OnTriggerTransition()
         {
             throw new System.NotImplementedException();
         }

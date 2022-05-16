@@ -16,21 +16,22 @@ public class OrbTransition : Transition
     [SerializeField]
     private Context _startContext;
     [SerializeField]
-    private GameObject OrbPrefab;
+    private GameObject _orbPrefab;
     [SerializeField]
-    private Transform ControllerTransform;
+    private Transform _controllerTransform;
     [SerializeField]
     private InputActionProperty _initiateAction;
     private Orb _orb;
 
     private TransitionManager _transitionManager;
 
-    internal override Task OnTriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
+    internal override Task OnTriggerTransition()
     {
-        traveller.Origin.position = (traveller.Origin.position - traveller.transform.position) + targetPosition;
-        targetRotation.ToAngleAxis(out var angle, out var axis);
-        traveller.Origin.RotateAround(traveller.transform.position,axis,angle);
-        Deiniate();
+        _transitionManager.XROrigin.MoveCameraToWorldLocation(Destination.position);
+        var rotDiff = Destination.rotation * Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
+        rotDiff.ToAngleAxis(out var angle, out var axis);
+        _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
+        Deinitiate();
         return Task.CompletedTask;
     }
 
@@ -50,7 +51,7 @@ public class OrbTransition : Transition
         };
         _initiateAction.action.performed += _ =>
         {
-            Deiniate();
+            Deinitiate();
         };
     }
 
@@ -66,13 +67,13 @@ public class OrbTransition : Transition
             Object.Destroy(_orb.gameObject);
         }
         _orb = new GameObject("Orb").AddComponent<Orb>();
-        _orb.transform.parent = ControllerTransform;
+        _orb.transform.parent = _controllerTransform;
         _orb.transform.localPosition = Vector3.zero;
         _orb.transform.localRotation = Quaternion.identity;
         _orb.Initialize(this);
     }
 
-    private void Deiniate()
+    private void Deinitiate()
     {
         if (_orb == null)
         {

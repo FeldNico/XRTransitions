@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.Events;
 using Object = UnityEngine.Object;
@@ -17,7 +18,7 @@ namespace Scripts
         private Context _targetContext;
         
         public abstract Task Initialization();
-        internal abstract Task  OnTriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation);
+        internal abstract Task  OnTriggerTransition();
         public abstract Context GetStartContext();
         public virtual Context GetTargetContext()
         {
@@ -29,7 +30,7 @@ namespace Scripts
             return _targetContext;
         }
         
-        public async Task TriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
+        public async Task TriggerTransition()
         {
             if (_manager == null)
             {
@@ -43,7 +44,7 @@ namespace Scripts
             
             Context.OnExit?.Invoke(GetStartContext());
 
-            await OnTriggerTransition(traveller, targetPosition, targetRotation);
+            await OnTriggerTransition();
 
             Physics.SyncTransforms();
             

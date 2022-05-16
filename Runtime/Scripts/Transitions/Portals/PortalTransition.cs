@@ -11,9 +11,10 @@ namespace Scripts
         [SerializeField]
         private Portal _portal;
         private Context _startContext;
-
+        private TransitionManager _transitionManager;
         public override async Task Initialization()
         {
+            _transitionManager = Object.FindObjectOfType<TransitionManager>();
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
             {
                 await Task.Yield();
@@ -22,12 +23,12 @@ namespace Scripts
             _portal.Initialize(this);
         }
         
-        internal override Task OnTriggerTransition(Traveller traveller, Vector3 targetPosition, Quaternion targetRotation)
+        internal override Task OnTriggerTransition()
         {
-            traveller.Origin.position = (traveller.Origin.position - traveller.transform.position) + targetPosition;
-            targetRotation.ToAngleAxis(out var angle, out var axis);
-            traveller.Origin.RotateAround(traveller.transform.position,axis,angle);
-            Physics.SyncTransforms();
+            _transitionManager.XROrigin.MoveCameraToWorldLocation(Destination.position);
+            var rotDiff = Destination.rotation * Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
+            rotDiff.ToAngleAxis(out var angle, out var axis);
+            _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
             return Task.CompletedTask;
         }
         

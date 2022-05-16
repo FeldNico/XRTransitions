@@ -85,21 +85,21 @@ namespace Scripts
 
         private void OnEnable()
         {
-            InputSystem.onAfterUpdate += RenderPortal;
+            InputSystem.onAfterUpdate += Render;
         }
 
         private void OnDisable()
         {
-            InputSystem.onAfterUpdate -= RenderPortal;
+            InputSystem.onAfterUpdate -= Render;
         }
 
-        private void RenderPortal()
+        private void Render()
         {
             if (_isInitialized && InputState.currentUpdateType == InputUpdateType.BeforeRender )
             {
-                var localToWorldMatrix = _destination.localToWorldMatrix * _originTransform.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
+                var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _originTransform.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
                 transform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
-                //SetNearClipPlane();
+                SetNearClipPlane();
                 _camera.Render();
             }
         }

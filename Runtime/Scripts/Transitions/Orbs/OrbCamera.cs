@@ -20,7 +20,6 @@ public class OrbCamera : MonoBehaviour
     private Camera _mainCamera;
     private Camera.StereoscopicEye _eye;
     private Renderer _orbRenderer;
-    private Transform _mainCameraTransform;
     private Transform _eyeTransform;
     private Transform _orbTransform;
     private Transform _destination;
@@ -46,7 +45,6 @@ public class OrbCamera : MonoBehaviour
         }
 
         _mainCamera = _transitionManager.MainCamera;
-        _mainCameraTransform = _mainCamera.transform;
         _camera.CopyFrom(_mainCamera);
         _camera.forceIntoRenderTexture = true;
         _camera.targetTexture = new RenderTexture(_mainCamera.pixelWidth, _mainCamera.pixelHeight, 24);
@@ -104,8 +102,8 @@ public class OrbCamera : MonoBehaviour
     {
         if (_isInitialized && InputState.currentUpdateType == InputUpdateType.BeforeRender && _orbRenderer.isVisible)
         {
-            transform.position = _destination.TransformPoint(_orbTransform.InverseTransformPoint(_eyeTransform.position))+ Vector3.up * _orbTransform.position.y;
-            transform.rotation = _destination.rotation * _eyeTransform.rotation;
+            var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _orb.LocalDummy.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
+            transform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
             SetNearClipPlane();
             _camera.Render();
         }
