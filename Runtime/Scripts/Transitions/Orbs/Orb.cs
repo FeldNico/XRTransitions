@@ -23,9 +23,14 @@ public class Orb : MonoBehaviour
 
     private Transform _localDummy;
 
-    public void Awake()
+    private void Awake()
     {
         _transitionManager = FindObjectOfType<TransitionManager>();
+
+        if (_orbRenderer == null)
+        {
+            _orbRenderer = GetComponentInChildren<Renderer>();
+        }
         
         _leftOrbCamera = new GameObject("LeftCamera").AddComponent<OrbCamera>();
         _rightOrbCamera = new GameObject("RightCamera").AddComponent<OrbCamera>();
@@ -36,6 +41,7 @@ public class Orb : MonoBehaviour
         _transition = transition;
 
         _localDummy = new GameObject("OrbLocalDummy").transform;
+        //_localDummy.parent = _transitionManager.XROrigin.transform;
         var camPos = _transitionManager.MainCamera.transform.position;
         camPos.y = _transitionManager.XROrigin.transform.position.y;
         _localDummy.position = camPos;

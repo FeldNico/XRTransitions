@@ -14,8 +14,6 @@ namespace Scripts
     [Serializable]
     public class DissolveTransition: Transition
     {
-        private static readonly int Alpha = Shader.PropertyToID("_Alpha");
-        
         public float Duration => _duration;
 
         [SerializeField]
@@ -26,7 +24,7 @@ namespace Scripts
 
         [SerializeField] 
         private float _duration;
-        
+
         [SerializeField]
         private InputActionProperty _initiateAction;
         
@@ -35,27 +33,16 @@ namespace Scripts
 
         internal override async Task OnTriggerTransition()
         {
-            Destination.transform.position = new Vector3(Destination.transform.position.x,
-                _transitionManager.MainCamera.transform.position.y, Destination.transform.position.z);
-            
             _dissolve = Object.Instantiate(DissolvePrefab).GetComponent<Dissolve>();
-            _dissolve.transform.parent = _transitionManager.MainCamera.transform;
-            _dissolve.transform.localPosition = new Vector3(0f, 0f, _transitionManager.MainCamera.nearClipPlane+0.01f);
-            _dissolve.transform.localRotation = Quaternion.AngleAxis(180,Vector3.up);
             _dissolve.Initialize(this);
-            _dissolve.PlaneRenderer.material.SetFloat(Alpha,0f);
-
-            var startTime = Time.time;
-            while (Time.time <= startTime + Duration)
-            {
-                await Task.Yield();
-                _dissolve.PlaneRenderer.material.SetFloat(Alpha,(Time.time - startTime)/Duration);
-            }
-            _dissolve.PlaneRenderer.material.SetFloat(Alpha,1);
             
-            _transitionManager.XROrigin.MoveCameraToWorldLocation(Destination.position);
-            var rotDiff = Destination.rotation * Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
-            rotDiff.ToAngleAxis(out var angle, out var axis);
+            await _dissolve.BlendForSeconds(Duration);
+            
+            var localToWorldMatrix = Destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _dissolve.LocalDummy.transform.worldToLocalMatrix * _transitionManager.MainCamera.transform.localToWorldMatrix;
+            _transitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
+            Quaternion targetRotation = localToWorldMatrix.rotation *
+                                        Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
+            targetRotation.ToAngleAxis(out var angle,out var axis);
             _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
 
             Object.Destroy(_dissolve.gameObject);
@@ -65,18 +52,22 @@ namespace Scripts
         public override async Task Initialization()
         {
             _transitionManager = Object.FindObjectOfType<TransitionManager>();
-            while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
+            while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !_transitionManager.MainCamera.stereoEnabled)
             {
                 await Task.Delay(1);
             }
-            await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 10));
             _initiateAction.EnableDirectAction();
-            _initiateAction.action.performed += _ =>
+            InputSystem.onAfterUpdate += HandleInput;
+        }
+
+        private void HandleInput()
+        {
+            if (_initiateAction.action.WasPressedThisFrame())
             {
                 TriggerTransition();
-            };
+            }
         }
-        
+
         public override Context GetStartContext()
         {
             return _startContext;
@@ -85,11 +76,24 @@ namespace Scripts
         [MenuItem("Transition/Dissolve")]
         public static async void Trigger()
         {
+            if (!Application.isPlaying)
+            {
+                Debug.LogError("Transition only available in Playmode");
+                return;
+            }
+            
             var transitionManager = Object.FindObjectOfType<TransitionManager>();
             var transition =
-                transitionManager.Transitions.First(transition => transition.GetType() == typeof(DissolveTransition));
-            await transition.Initialization();
-            transition.TriggerTransition();
+                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(DissolveTransition));
+            if (transition != null)
+            {
+                await transition.Initialization();
+                transition.TriggerTransition();
+            }
+            else
+            {
+                Debug.LogError("No DissolveTransition found");
+            }
         }
     }
 }

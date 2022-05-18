@@ -104,7 +104,7 @@ public class OrbCamera : MonoBehaviour
         {
             var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _orb.LocalDummy.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
             transform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
-            SetNearClipPlane();
+            //SetNearClipPlane();
             _camera.Render();
         }
     }

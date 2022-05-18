@@ -62,5 +62,6 @@ public class TransitionManager : MonoBehaviour
     {
         var tasks = Transitions.Select(transition => transition.Initialization());
         await Task.WhenAll(tasks);
+        Debug.Log("INIT!");
     }
 }

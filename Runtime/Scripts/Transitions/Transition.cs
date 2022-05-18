@@ -11,12 +11,13 @@ namespace Scripts
     public abstract class Transition
     {
         public Transform Destination => _destination;
+        public bool IsTransitioning => _isTransitioning;
         
         [SerializeField]
         private Transform _destination;
         private TransitionManager _manager;
         private Context _targetContext;
-        
+        private bool _isTransitioning;
         public abstract Task Initialization();
         internal abstract Task  OnTriggerTransition();
         public abstract Context GetStartContext();
@@ -37,18 +38,22 @@ namespace Scripts
                 _manager = Object.FindObjectOfType<TransitionManager>();
             }
 
-            if (_manager.CurrentContext != GetStartContext())
+            if (_manager.CurrentContext != GetStartContext() || _isTransitioning)
             {
                 return;
             }
-            
+
+            _isTransitioning = true;
             Context.OnExit?.Invoke(GetStartContext());
 
+            Debug.Log("Transition");
+            
             await OnTriggerTransition();
 
             Physics.SyncTransforms();
             
             Context.OnEnter?.Invoke(GetTargetContext());
+            _isTransitioning = false;
         }
     }
 }

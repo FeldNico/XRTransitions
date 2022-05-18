@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.XR.Management;
 
 namespace Scripts.Transformation
 {
@@ -22,6 +25,29 @@ namespace Scripts.Transformation
         public override Context GetStartContext()
         {
             return _startContext;
+        }
+        
+        [MenuItem("Transition/Transformation")]
+        public static async void Trigger()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.LogError("Transition only available in Playmode");
+                return;
+            }
+            
+            var transitionManager = Object.FindObjectOfType<TransitionManager>();
+            var transition =
+                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(TransformationTransition));
+            if (transition != null)
+            {
+                await transition.Initialization();
+                transition.TriggerTransition();
+            }
+            else
+            {
+                Debug.LogError("No TransformationTransition found");
+            }
         }
     }
 }

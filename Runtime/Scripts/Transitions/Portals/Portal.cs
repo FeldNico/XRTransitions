@@ -24,6 +24,7 @@ public class Portal : MonoBehaviour
     private Transform _mainCameraTransform;
     private Vector3 _lastPosition;
     private List<(Transform, Transform)> _dummyList = new();
+    private bool _isPlayerInBounds = false;
     private void Awake()
     {
         if (_planeRenderer == null)
@@ -46,6 +47,13 @@ public class Portal : MonoBehaviour
 
         _destination = transition.Destination;
         _lastPosition = _mainCameraTransform.position;
+        Context.OnEnter += context =>
+        {
+            if (context == _transition.GetStartContext())
+            {
+                _lastPosition = _mainCameraTransform.position;
+            }
+        };
         _isInitialized = true;
     }
 
@@ -62,21 +70,24 @@ public class Portal : MonoBehaviour
             return;
         }
 
-        if (FrontOfPortal(_lastPosition) && !FrontOfPortal(_mainCameraTransform.position))
+        if (_isPlayerInBounds)
         {
-            await _transition.TriggerTransition();
-            foreach (var (_, dummyTransform) in _dummyList)
+            if (FrontOfPortal(_lastPosition) && !FrontOfPortal(_mainCameraTransform.position))
             {
-                Destroy(dummyTransform.gameObject);
+                await _transition.TriggerTransition();
+                foreach (var (_, dummyTransform) in _dummyList)
+                {
+                    Destroy(dummyTransform.gameObject);
+                }
+                _dummyList.Clear();
             }
-            _dummyList.Clear();
-        }
-        else
-        {
-            foreach (var (originalTransform, dummyTransform) in _dummyList)
+            else
             {
-                var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * transform.worldToLocalMatrix * originalTransform.localToWorldMatrix;
-                dummyTransform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
+                foreach (var (originalTransform, dummyTransform) in _dummyList)
+                {
+                    var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * transform.worldToLocalMatrix * originalTransform.localToWorldMatrix;
+                    dummyTransform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
+                }
             }
         }
     }
@@ -90,7 +101,9 @@ public class Portal : MonoBehaviour
     {
         if (other.transform == _mainCameraTransform)
         {
-            MeshFilter[] filters = _mainCameraTransform.GetComponentsInChildren<MeshFilter>().Where(filter => filter.GetComponent<MeshRenderer>() != null).ToArray();
+            _isPlayerInBounds = true;
+            _lastPosition = _mainCameraTransform.position;
+            MeshFilter[] filters = _transitionManager.XROrigin.GetComponentsInChildren<MeshFilter>().Where(filter => filter.GetComponent<MeshRenderer>() != null).ToArray();
             foreach (MeshFilter filter in filters)
             {
                 GameObject dummy = new GameObject(filter.gameObject.name + "-Dummy");
@@ -98,6 +111,7 @@ public class Portal : MonoBehaviour
                 MeshRenderer dummyRenderer = dummy.AddComponent<MeshRenderer>();
                 dummyFilter.GetCopyOf(filter);
                 dummyRenderer.GetCopyOf(filter.GetComponent<MeshRenderer>());
+                dummyRenderer.bounds = new Bounds(Vector3.zero, Vector3.one * 10000f);
                 dummy.transform.localScale = filter.transform.lossyScale;
                 dummy.transform.parent = transform;
                 _dummyList.Add((filter.transform,dummy.transform));
@@ -109,6 +123,7 @@ public class Portal : MonoBehaviour
     {
         if (other.transform == _mainCameraTransform)
         {
+            _isPlayerInBounds = false;
             foreach (var (_, dummyTransform) in _dummyList)
             {
                 Destroy(dummyTransform.gameObject);

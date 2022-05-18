@@ -27,9 +27,11 @@ public class OrbTransition : Transition
 
     internal override Task OnTriggerTransition()
     {
-        _transitionManager.XROrigin.MoveCameraToWorldLocation(Destination.position);
-        var rotDiff = Destination.rotation * Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
-        rotDiff.ToAngleAxis(out var angle, out var axis);
+        var localToWorldMatrix = Destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _orb.LocalDummy.transform.worldToLocalMatrix * _transitionManager.MainCamera.transform.localToWorldMatrix;
+        _transitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
+        Quaternion targetRotation = localToWorldMatrix.rotation *
+                                    Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
+        targetRotation.ToAngleAxis(out var angle,out var axis);
         _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
         Deinitiate();
         return Task.CompletedTask;
@@ -38,21 +40,12 @@ public class OrbTransition : Transition
     public override async Task Initialization()
     {
         _transitionManager = Object.FindObjectOfType<TransitionManager>();
-        while (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
+        while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !_transitionManager.MainCamera.stereoEnabled)
         {
-            await Task.Yield();
+            await Task.Delay(1);
         }
-
-        await Task.Delay(TimeSpan.FromSeconds(Time.deltaTime * 300));
         _initiateAction.EnableDirectAction();
-        _initiateAction.action.started += _ =>
-        {
-            Initiate();
-        };
-        _initiateAction.action.performed += _ =>
-        {
-            Deinitiate();
-        };
+        InputSystem.onAfterUpdate += HandleInput;
     }
 
     public override Context GetStartContext()
@@ -60,21 +53,39 @@ public class OrbTransition : Transition
         return _startContext;
     }
 
+    private void HandleInput()
+    {
+        if (_transitionManager.CurrentContext == GetStartContext())
+        {
+            if (_initiateAction.action.WasPressedThisFrame())
+            {
+                Initiate();
+            }
+            else if (_initiateAction.action.WasReleasedThisFrame())
+            {
+                Deinitiate();
+            }
+        }
+    }
+    
     private void Initiate()
     {
+        Debug.Log("Initiate");
         if (_orb != null)
         {
             Object.Destroy(_orb.gameObject);
         }
-        _orb = new GameObject("Orb").AddComponent<Orb>();
+
+        _orb = Object.Instantiate(_orbPrefab).GetComponent<Orb>();
         _orb.transform.parent = _controllerTransform;
-        _orb.transform.localPosition = Vector3.zero;
+        _orb.transform.localPosition = new Vector3(0,0.15f,0);
         _orb.transform.localRotation = Quaternion.identity;
         _orb.Initialize(this);
     }
 
     private void Deinitiate()
     {
+        Debug.Log("Deinitiate");
         if (_orb == null)
         {
             return;

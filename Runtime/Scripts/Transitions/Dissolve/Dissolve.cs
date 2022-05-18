@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Scripts;
 using Scripts.Utils;
 using Unity.XR.CoreUtils;
@@ -11,46 +12,96 @@ using UnityEngine.InputSystem.LowLevel;
 
 public class Dissolve : MonoBehaviour
 {
+    private static readonly int Alpha = Shader.PropertyToID("_Alpha");
 
-    private bool _isInitialized = false;
+    public Renderer PlaneRenderer => _planeRenderer;
+    public Transform LocalDummy => _localDummy;
     
     [SerializeField]
     private Renderer _planeRenderer;
-    public Renderer PlaneRenderer => _planeRenderer;
-    public Transform Origin => _origin;
-
     private DissolveCamera _leftPortalCamera;
     private DissolveCamera _rightPortalCamera;
     private TransitionManager _transitionManager;
-    private Transform _origin;
+    private Transform _destination;
+    private Transform _localDummy;
+    private List<(Transform, Transform)> _dummyList = new();
 
     private void Awake()
     {
         if (_planeRenderer == null)
         {
-            _planeRenderer = transform.Find("RenderPlane").GetComponent<MeshRenderer>();
+            _planeRenderer = GetComponentInChildren<Renderer>();
         }
 
         _transitionManager = FindObjectOfType<TransitionManager>();
-        _origin = new GameObject("DissolveOrigin").transform;
-        _origin.parent = FindObjectOfType<XROrigin>().transform;
-        _origin.position = _transitionManager.MainCamera.transform.position;
-        _origin.rotation = Quaternion.identity;
+        _localDummy = new GameObject("DissolveLocalDummy").transform;
+        //_localDummy.parent = _transitionManager.XROrigin.transform;
+        var camPos = _transitionManager.MainCamera.transform.position;
+        camPos.y = _transitionManager.XROrigin.transform.position.y;
+        _localDummy.position = camPos;
+        _localDummy.rotation = Quaternion.identity;
     }
 
     public void Initialize(DissolveTransition transition)
     {
+        _destination = transition.Destination;
+        
         _leftPortalCamera = new GameObject("LeftCamera").AddComponent<DissolveCamera>();
         _leftPortalCamera.Initialize(this, transition, Camera.StereoscopicEye.Left);
 
         _rightPortalCamera = new GameObject("RightCamera").AddComponent<DissolveCamera>();
         _rightPortalCamera.Initialize(this, transition, Camera.StereoscopicEye.Right);
-        _isInitialized = true;
+        
+        transform.parent = _transitionManager.MainCamera.transform;
+        transform.localPosition = new Vector3(0f, 0f, _transitionManager.MainCamera.nearClipPlane+0.01f);
+        transform.localRotation = Quaternion.AngleAxis(180,Vector3.up);
+        
+        PlaneRenderer.material.SetFloat(Alpha,0f);
+    }
+
+    public async Task BlendForSeconds(float seconds)
+    {
+        MeshFilter[] filters = _transitionManager.XROrigin.GetComponentsInChildren<MeshFilter>().Where(filter => filter.GetComponent<MeshRenderer>() != null && filter.GetComponentInParent<Dissolve>() == null).ToArray();
+        foreach (MeshFilter filter in filters)
+        {
+            GameObject dummy = new GameObject(filter.gameObject.name + "-Dummy");
+            MeshFilter dummyFilter = dummy.AddComponent<MeshFilter>();
+            MeshRenderer dummyRenderer = dummy.AddComponent<MeshRenderer>();
+            dummyFilter.GetCopyOf(filter);
+            dummyRenderer.GetCopyOf(filter.GetComponent<MeshRenderer>());
+            dummyRenderer.bounds = new Bounds(Vector3.zero, Vector3.one * 10000f);
+            dummy.transform.parent = _localDummy;
+            dummy.transform.localScale = filter.transform.lossyScale;
+            _dummyList.Add((filter.transform,dummy.transform));
+        }
+
+        var startTime = Time.time;
+        while (Time.time <= startTime + seconds)
+        {
+            await Task.Yield();
+            PlaneRenderer.material.SetFloat(Alpha,(Time.time - startTime)/seconds);
+        }
+        PlaneRenderer.material.SetFloat(Alpha,1);
+        
+        foreach (var (_, dummyTransform) in _dummyList)
+        {
+            Destroy(dummyTransform.gameObject);
+        }
+        _dummyList.Clear();
+    }
+
+    private void Update()
+    {
+        foreach (var (originalTransform, dummyTransform) in _dummyList)
+        {
+            var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _localDummy.worldToLocalMatrix * originalTransform.localToWorldMatrix;
+            dummyTransform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
+        }
     }
 
     private void OnDestroy()
     {
-        Destroy(_origin.gameObject);
+        Destroy(_localDummy.gameObject);
         Destroy(_leftPortalCamera.gameObject);
         Destroy(_rightPortalCamera.gameObject);
     }
