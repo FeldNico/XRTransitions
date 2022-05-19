@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Management;
 
 namespace Scripts.Transformation
@@ -11,15 +13,46 @@ namespace Scripts.Transformation
         [SerializeField] private Context _startContext;
         [SerializeField] private GameObject _transformationPrefab;
         [SerializeField] private float _duration;
+        [SerializeField]
+        private InputActionProperty _initiateAction;
         
-        public override Task Initialization()
+        private Transformation _transformation;
+        private TransitionManager _transitionManager;
+        public override async Task Initialization()
         {
-            throw new System.NotImplementedException();
+            _transitionManager = Object.FindObjectOfType<TransitionManager>();
+            while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !_transitionManager.MainCamera.stereoEnabled)
+            {
+                await Task.Delay(1);
+            }
+            _initiateAction.EnableDirectAction();
+            InputSystem.onAfterUpdate += HandleInput;
         }
 
-        internal override Task OnTriggerTransition()
+        private void HandleInput()
         {
-            throw new System.NotImplementedException();
+            if (_initiateAction.action.WasPressedThisFrame())
+            {
+                TriggerTransition();
+            }
+        }
+        
+        internal override async Task OnTriggerTransition()
+        {
+            _transformation = Object.Instantiate(_transformationPrefab).GetComponent<Transformation>();
+            _transformation.Initialize(this);
+            
+            await _transformation.BlendForSeconds(_duration);
+            
+            var localToWorldMatrix = Destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _transformation.LocalDummy.transform.worldToLocalMatrix * _transitionManager.MainCamera.transform.localToWorldMatrix;
+            _transitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
+            Quaternion targetRotation = localToWorldMatrix.rotation *
+                                        Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
+            targetRotation.ToAngleAxis(out var angle,out var axis);
+            _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
+
+            Object.Destroy(_transformation.gameObject);
+            _transformation = null;
         }
 
         public override Context GetStartContext()
