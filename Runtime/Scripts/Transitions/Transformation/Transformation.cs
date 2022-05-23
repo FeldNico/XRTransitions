@@ -5,6 +5,8 @@ namespace Scripts.Transformation
 {
     public class Transformation : MonoBehaviour
     {
+        private static readonly int Alpha = Shader.PropertyToID("_Alpha");
+        
         public Renderer Renderer => _renderer;
         public Transform LocalDummy => _localDummy;
         
@@ -49,7 +51,14 @@ namespace Scripts.Transformation
 
         public async Task BlendForSeconds(float seconds)
         {
-            
+            var startTime = Time.time;
+            Renderer.material.SetFloat(Alpha,0);
+            while (Time.time <= startTime + seconds)
+            {
+                await Task.Yield();
+                Renderer.material.SetFloat(Alpha,(Time.time - startTime)/seconds);
+            }
+            Renderer.material.SetFloat(Alpha,1);
         }
     }
 }

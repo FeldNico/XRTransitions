@@ -2,13 +2,18 @@
 {
     Properties
     {
+        _TransformMask ("Texture", 2D) = "white" {}
         _LeftEyeTexture ("Texture", 2D) = "white" {}
         _RightEyeTexture("Texture", 2D) = "white" {}
+        _Alpha ("Transparency", Float) = 1
+        _Count ("Count", Int) =30
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
-        LOD 100
+        Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
+        ZTest Always
+        ZWrite Off
+        Blend SrcAlpha OneMinusSrcAlpha
         Cull Front
         Pass
         {
@@ -32,12 +37,16 @@
                 float4 screenPos : TEXCOORD0;
                 UNITY_FOG_COORDS(1)
                 float4 vertex : SV_POSITION;
+                float2 uv : TEXCOORD2;
                 UNITY_VERTEX_INPUT_INSTANCE_ID 
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
+            sampler2D _TransformMask;
             sampler2D _LeftEyeTexture;
             sampler2D _RightEyeTexture;
+            float _Alpha;
+            int _Count;
 
             v2f vert (appdata v)
             {
@@ -47,6 +56,7 @@
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.screenPos = ComputeScreenPos(o.vertex); // use the screen position coordinates of the portal to sample the render texture (which is our screen)
+                o.uv = v.uv;
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
@@ -54,13 +64,15 @@
             fixed4 frag(v2f i) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                float2 uv = i.screenPos.xy / i.screenPos.w; // clip space -> normalized texture
+                const float2 screenUV = i.screenPos.xy / i.screenPos.w; // clip space -> normalized texture
  
                 // sample the texture
-                fixed4 col = unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeTexture, uv) : tex2D(_RightEyeTexture, uv);
+                const float2 uv = i.uv * _Count;
+                
+                fixed4 col = (unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeTexture, screenUV) : tex2D(_RightEyeTexture, screenUV)) * (1,1,1,clamp(_Alpha * 2 - tex2D(_TransformMask,uv)[0],0,1)) ;
  
                 // apply fog
-                UNITY_APPLY_FOG(i.fogCoord, col);
+                UNITY_APPLY_FOG(i.fogCoord, col );
                 return col;
             }
             ENDCG
