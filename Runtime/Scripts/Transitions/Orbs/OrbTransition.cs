@@ -40,12 +40,16 @@ public class OrbTransition : Transition
     public override async Task Initialization()
     {
         _transitionManager = Object.FindObjectOfType<TransitionManager>();
+        if (_transitionManager.MainCamera.GetComponent<Collider>() == null)
+        {
+            var collider = _transitionManager.MainCamera.gameObject.AddComponent<SphereCollider>();
+            collider.radius = 0.2f;
+        }
         while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !_transitionManager.MainCamera.stereoEnabled)
         {
             await Task.Delay(1);
         }
         _initiateAction.EnableDirectAction();
-        InputSystem.onAfterUpdate += HandleInput;
     }
 
     public override Context GetStartContext()
@@ -53,7 +57,7 @@ public class OrbTransition : Transition
         return _startContext;
     }
 
-    private void HandleInput()
+    internal override void OnUpdate()
     {
         if (_transitionManager.CurrentContext == GetStartContext())
         {
@@ -67,7 +71,7 @@ public class OrbTransition : Transition
             }
         }
     }
-    
+
     private void Initiate()
     {
         Debug.Log("Initiate");

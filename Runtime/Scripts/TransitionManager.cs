@@ -29,6 +29,7 @@ public class TransitionManager : MonoBehaviour
     [SerializeReference]
     private Context _currentContext;
     private XROrigin _xrOrigin;
+    private bool _isInitialized = false;
 
     private void Awake()
     {
@@ -62,6 +63,31 @@ public class TransitionManager : MonoBehaviour
     {
         var tasks = Transitions.Select(transition => transition.Initialization());
         await Task.WhenAll(tasks);
+        _isInitialized = true;
         Debug.Log("INIT!");
+    }
+
+    private void Update()
+    {
+        if (!_isInitialized)
+        {
+            return;
+        }
+        foreach (var transition in Transitions)
+        {
+            transition.OnUpdate();
+        }
+    }
+    
+    private void LateUpdate()
+    {
+        if (!_isInitialized)
+        {
+            return;
+        }
+        foreach (var transition in Transitions)
+        {
+            transition.OnLateUpdate();
+        }
     }
 }

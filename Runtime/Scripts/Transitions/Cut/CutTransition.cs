@@ -38,6 +38,14 @@ namespace Scripts.Transitions.Cut
             return _startContext;
         }
         
+        internal override void OnUpdate()
+        {
+            if (_transitionManager.CurrentContext == GetStartContext() && _initiateAction.action.WasPressedThisFrame())
+            {
+                TriggerTransition();
+            }
+        }
+        
         [MenuItem("Transition/Cut")]
         public static async void Trigger()
         {

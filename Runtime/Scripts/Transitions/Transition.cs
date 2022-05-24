@@ -55,5 +55,15 @@ namespace Scripts
             Context.OnEnter?.Invoke(GetTargetContext());
             _isTransitioning = false;
         }
+
+        internal virtual void OnUpdate()
+        {
+            
+        }
+        
+        internal virtual void OnLateUpdate()
+        {
+            
+        }
     }
 }

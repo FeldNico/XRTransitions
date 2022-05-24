@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Scripts.Transformation
@@ -59,6 +60,11 @@ namespace Scripts.Transformation
                 Renderer.material.SetFloat(Alpha,(Time.time - startTime)/seconds);
             }
             Renderer.material.SetFloat(Alpha,1);
+        }
+
+        private void Update()
+        {
+            transform.rotation = Quaternion.identity;
         }
     }
 }

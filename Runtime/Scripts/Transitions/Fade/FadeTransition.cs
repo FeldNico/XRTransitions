@@ -27,12 +27,11 @@ public class FadeTransition : Transition
         {
             _transitionManager = Object.FindObjectOfType<TransitionManager>();
             _initiateAction.EnableDirectAction();
-            InputSystem.onAfterUpdate += HandleInput;
         }
 
-        private void HandleInput()
+        internal override void OnUpdate()
         {
-            if (_initiateAction.action.WasPressedThisFrame())
+            if (_transitionManager.CurrentContext == GetStartContext() && _initiateAction.action.WasPressedThisFrame())
             {
                 TriggerTransition();
             }

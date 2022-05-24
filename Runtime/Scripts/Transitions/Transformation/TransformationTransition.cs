@@ -26,17 +26,16 @@ namespace Scripts.Transformation
                 await Task.Delay(1);
             }
             _initiateAction.EnableDirectAction();
-            InputSystem.onAfterUpdate += HandleInput;
         }
 
-        private void HandleInput()
+        internal override void OnUpdate()
         {
-            if (_initiateAction.action.WasPressedThisFrame())
+            if (_transitionManager.CurrentContext == GetStartContext() && _initiateAction.action.WasPerformedThisFrame())
             {
                 TriggerTransition();
             }
         }
-        
+
         internal override async Task OnTriggerTransition()
         {
             _transformation = Object.Instantiate(_transformationPrefab).GetComponent<Transformation>();
