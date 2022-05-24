@@ -27,6 +27,7 @@ public class FadeTransition : Transition
         {
             _transitionManager = Object.FindObjectOfType<TransitionManager>();
             _initiateAction.EnableDirectAction();
+            _color.a = 1f;
         }
 
         internal override void OnUpdate()
@@ -43,15 +44,20 @@ public class FadeTransition : Transition
             _fade.Initialize(this);
 
             await _fade.FadeOut(_duration / 2f, _color);
-            
-            var localToWorldMatrix = Destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _transitionManager.XROrigin.transform.worldToLocalMatrix * _transitionManager.MainCamera.transform.localToWorldMatrix;
+
+            var localToWorldMatrix = Destination.localToWorldMatrix *
+                                     Matrix4x4.Rotate(Quaternion.AngleAxis(180f, Vector3.up)) *
+                                     _transitionManager.XROrigin.transform.worldToLocalMatrix *
+                                     _transitionManager.MainCamera.transform.localToWorldMatrix;
             _transitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
             Quaternion targetRotation = localToWorldMatrix.rotation *
                                         Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
-            targetRotation.ToAngleAxis(out var angle,out var axis);
+            targetRotation.ToAngleAxis(out var angle, out var axis);
             _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
 
             await _fade.FadeIn(_duration / 2f);
+            Object.Destroy(_fade.gameObject);
+            _fade = null;
         }
 
         public override Context GetStartContext()
@@ -70,10 +76,9 @@ public class FadeTransition : Transition
             
             var transitionManager = Object.FindObjectOfType<TransitionManager>();
             var transition =
-                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(FadeTransition));
+                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(FadeTransition) && transition.GetStartContext() == transitionManager.CurrentContext);
             if (transition != null)
             {
-                await transition.Initialization();
                 transition.TriggerTransition();
             }
             else

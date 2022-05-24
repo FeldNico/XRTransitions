@@ -46,8 +46,6 @@ namespace Scripts
             _isTransitioning = true;
             Context.OnExit?.Invoke(GetStartContext());
 
-            Debug.Log("Transition");
-            
             await OnTriggerTransition();
 
             Physics.SyncTransforms();
