@@ -47,9 +47,10 @@ namespace Editor.Scripts
                     {
                         EditorGUILayout.PropertyField(element, new GUIContent(element.managedReferenceValue.GetType().Name),
                             true);
+                        GUILayout.Space(30);
                         EditorGUILayout.BeginHorizontal();
                         GUILayout.FlexibleSpace();
-                        if (GUILayout.Button("-", EditorStyles.miniButtonRight, GUILayout.Width(80)))
+                        if (GUILayout.Button("Delete Transition", GUILayout.Width(120)))
                         {
                             transitionManager.Transitions.Remove(element.managedReferenceValue as Transition);
                         }

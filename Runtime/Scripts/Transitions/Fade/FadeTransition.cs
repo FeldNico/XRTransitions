@@ -14,7 +14,7 @@ public class FadeTransition : Transition
 
         [SerializeField] private Context _startContext;
         [SerializeField] private GameObject _fadePrefab;
-        [SerializeField] private Color _color;
+        [SerializeField] private Color _color = Color.black;
         [SerializeField] private float _duration;
         [SerializeField]
         private InputActionProperty _initiateAction;

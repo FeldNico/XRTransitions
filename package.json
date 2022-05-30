@@ -4,7 +4,7 @@
   "displayName": "XRTransitions",
   "description": "This Package includes all necessary files for the XRTransitions Package",
   "dependencies": {
-    "com.unity.xr.interaction.toolkit": "2.0.1",
+    "com.unity.xr.interaction.toolkit": "2.0.2",
     "com.unity.xr.management": "4.2.1"
   },
  "keywords": [
@@ -20,8 +20,8 @@
   },
   "samples": [
    {
-     "displayName": "Example Scene",
-     "path": "Samples~/Example Scene"
+     "displayName": "Example Scenes",
+     "path": "Samples~/Example Scenes"
    }
  ]
 }
