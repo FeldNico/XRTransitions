@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Scripts;
 using Scripts.Utils;
 using UnityEngine;
@@ -25,6 +27,7 @@ public class Portal : MonoBehaviour
     private Vector3 _lastPosition;
     private List<(Transform, Transform)> _dummyList = new();
     private bool _isPlayerInBounds = false;
+    private bool _isAnimating;
     private void Awake()
     {
         if (_planeRenderer == null)
@@ -57,6 +60,53 @@ public class Portal : MonoBehaviour
         _isInitialized = true;
     }
 
+    public async void AnimPortal()
+    {
+        if (_isAnimating)
+        {
+            return;
+        }
+
+        _isAnimating = true;
+            
+        if (gameObject.activeSelf)
+        {
+            transform.localScale = Vector3.one;
+
+            var startTime = Time.time;
+            while (Time.time < startTime + 0.15f)
+            {
+                transform.localScale =
+                    Vector3.Lerp(Vector3.one, Vector3.zero, (Time.time - startTime) / 0.15f);
+                await Task.Delay(1);
+            }
+
+            transform.localScale = Vector3.zero;
+            gameObject.SetActive(false);
+            transform.localScale = Vector3.one;
+                
+            _isAnimating = false;
+        }
+        else
+        {
+            gameObject.SetActive(true);
+
+            transform.localScale = Vector3.zero;
+
+            var startTime = Time.time;
+            while (Time.time < startTime + 0.15f)
+            {
+                transform.localScale =
+                    Vector3.Lerp(Vector3.zero, Vector3.one, (Time.time - startTime) / 0.15f);
+                await Task.Delay(1);
+            }
+
+            transform.localScale = Vector3.one;
+                
+            _isAnimating = false;
+        }
+    }
+    
     private bool FrontOfPortal(Vector3 pos)
     {
         Transform t = transform;
@@ -72,7 +122,7 @@ public class Portal : MonoBehaviour
 
         if (_isPlayerInBounds)
         {
-            if (FrontOfPortal(_lastPosition) && !FrontOfPortal(_mainCameraTransform.position))
+            if (FrontOfPortal(_lastPosition) ^ FrontOfPortal(_mainCameraTransform.position))
             {
                 await _transition.TriggerTransition();
                 foreach (var (_, dummyTransform) in _dummyList)
@@ -132,10 +182,47 @@ public class Portal : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        if (_leftPortalCamera != null)
+        {
+            _leftPortalCamera.gameObject.SetActive(true);
+        }
+        if (_rightPortalCamera != null)
+        {
+            _rightPortalCamera.gameObject.SetActive(true);
+        }
+
+        if (_isInitialized && !FrontOfPortal(_transitionManager.MainCamera.transform.position))
+        {
+            transform.localRotation *= Quaternion.AngleAxis(180f,Vector3.up);
+            _transition.Destination.localRotation *= Quaternion.AngleAxis(180f,Vector3.up);
+        }
+    }
+    
+    private void OnDisable()
+    {
+        if (_leftPortalCamera != null)
+        {
+            _leftPortalCamera.gameObject.SetActive(false);
+        }
+        if (_rightPortalCamera != null)
+        {
+            _rightPortalCamera.gameObject.SetActive(false);
+        }
+    }
+
     private void OnDestroy()
     {
-        Destroy(_leftPortalCamera.gameObject);
-        Destroy(_rightPortalCamera.gameObject);
+        if (_leftPortalCamera)
+        {
+            Destroy(_leftPortalCamera.gameObject);
+        }
+        if (_rightPortalCamera)
+        {
+            Destroy(_rightPortalCamera.gameObject);
+        }
+        
         foreach (var (_, dummyTransform) in _dummyList)
         {
             Destroy(dummyTransform.gameObject);
