@@ -18,6 +18,7 @@ namespace Scripts
         [SerializeField] private InputActionProperty _initiateAction;
         private Context _startContext;
         private TransitionManager _transitionManager;
+        private bool _wasPressed = false;
 
         public override async Task Initialization()
         {
@@ -40,9 +41,14 @@ namespace Scripts
 
         private void HandleInput()
         {
-            if (_initiateAction.action.WasPressedThisFrame())
+            if (_initiateAction.action.ReadValue<float>() > 0.7f && !_wasPressed)
             {
+                _wasPressed = true;
                 _portal.AnimPortal();
+            }
+            if (_initiateAction.action.ReadValue<float>() < 0.3f && _wasPressed)
+            {
+                _wasPressed = false;
             }
         }
 

@@ -193,10 +193,11 @@ public class Portal : MonoBehaviour
             _rightPortalCamera.gameObject.SetActive(true);
         }
 
-        if (_isInitialized && !FrontOfPortal(_transitionManager.MainCamera.transform.position))
+        if (_isInitialized && _transition.GetStartContext() == _transitionManager.CurrentContext && Math.Sign(Vector3.Dot(_mainCameraTransform.position - transform.position, transform.forward)) < 0)
         {
-            transform.localRotation *= Quaternion.AngleAxis(180f,Vector3.up);
-            _transition.Destination.localRotation *= Quaternion.AngleAxis(180f,Vector3.up);
+            Debug.Log("Rotate");
+            transform.rotation *= Quaternion.AngleAxis(180f,Vector3.up);
+            _transition.Destination.rotation *= Quaternion.AngleAxis(180f,Vector3.up);
         }
     }
     
