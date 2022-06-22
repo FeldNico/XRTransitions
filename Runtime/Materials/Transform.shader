@@ -2,10 +2,11 @@
 {
     Properties
     {
-        _TransformMask ("Texture", 2D) = "white" {}
-        _LeftEyeTexture ("Texture", 2D) = "white" {}
-        _RightEyeTexture("Texture", 2D) = "white" {}
-        _Alpha ("Transparency", Float) = 1
+        _TransformMask ("TransformationMask", 2D) = "white" {}
+        _LeftEyeTexture ("LeftEyeTexture", 2D) = "white" {}
+        _RightEyeTexture("RightEyeTexture", 2D) = "white" {}
+        _Progress ("Progress", Float) = 0
+        _MaxProgress ("MaxProgress", Float) = 1
         _Count ("Count", Int) =30
     }
     SubShader
@@ -14,7 +15,7 @@
         ZTest Always
         ZWrite Off
         Blend SrcAlpha OneMinusSrcAlpha
-        Cull Front
+        Cull Back
         Pass
         {
             CGPROGRAM
@@ -41,13 +42,7 @@
                 UNITY_VERTEX_INPUT_INSTANCE_ID 
                 UNITY_VERTEX_OUTPUT_STEREO
             };
-
-            sampler2D _TransformMask;
-            sampler2D _LeftEyeTexture;
-            sampler2D _RightEyeTexture;
-            float _Alpha;
-            int _Count;
-
+            
             v2f vert (appdata v)
             {
                 v2f o;
@@ -61,19 +56,31 @@
                 return o;
             }
 
+            sampler2D _TransformMask;
+            sampler2D _LeftEyeTexture;
+            sampler2D _RightEyeTexture;
+            int _Count;
+            float _Progress;
+            
             fixed4 frag(v2f i) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                const float2 screenUV = i.screenPos.xy / i.screenPos.w; // clip space -> normalized texture
- 
-                // sample the texture
-                const float2 uv = i.uv * _Count;
+                float transValue = tex2D(_TransformMask, i.uv*_Count).b;
+                fixed4 color = (1,1,1,0);
+
+                if(transValue <= _Progress)
+                {
+                    color = unity_StereoEyeIndex == 0 ? tex2Dproj(_LeftEyeTexture, UNITY_PROJ_COORD(i.screenPos)) : tex2Dproj(_RightEyeTexture, UNITY_PROJ_COORD(i.screenPos));
+                }
                 
-                fixed4 col = (unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeTexture, screenUV) : tex2D(_RightEyeTexture, screenUV)) * (1,1,1,clamp(_Alpha * 2 - tex2D(_TransformMask,uv)[0],0,1)) ;
+                // sample the texture
+                //const float2 uv = i.uv * _Count;
+                
+                //fixed4 col = (unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeTexture, screenUV) : tex2D(_RightEyeTexture, screenUV)) * (1,1,1,clamp(_Alpha * 2 - tex2D(_TransformMask,uv)[0],0,1)) ;
  
                 // apply fog
-                UNITY_APPLY_FOG(i.fogCoord, col );
-                return col;
+                UNITY_APPLY_FOG(i.fogCoord, color );
+                return color;
             }
             ENDCG
         }

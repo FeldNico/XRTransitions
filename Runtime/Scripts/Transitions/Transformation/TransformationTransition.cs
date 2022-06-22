@@ -12,7 +12,7 @@ namespace Scripts.Transformation
     {
         [SerializeField] private Context _startContext;
         [SerializeField] private GameObject _transformationPrefab;
-        [SerializeField] private float _duration;
+        [SerializeField] private float _duration = 1.3f;
         [SerializeField]
         private InputActionProperty _initiateAction;
         
@@ -71,11 +71,11 @@ namespace Scripts.Transformation
             
             var transitionManager = Object.FindObjectOfType<TransitionManager>();
             var transition =
-                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(TransformationTransition));
+                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(TransformationTransition) && transition.GetStartContext() == transitionManager.CurrentContext);
             if (transition != null)
             {
                 await transition.Initialization();
-                transition.TriggerTransition();
+                await transition.TriggerTransition();
             }
             else
             {
