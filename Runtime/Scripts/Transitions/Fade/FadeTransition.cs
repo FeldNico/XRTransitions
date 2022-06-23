@@ -20,22 +20,45 @@ public class FadeTransition : Transition
         private InputActionProperty _initiateAction;
 
         private TransitionManager _transitionManager;
+        private bool _wasPressed;
 
         private Fade _fade;
         
-        public override async Task Initialization()
+        internal override async Task OnInitialization()
         {
             _transitionManager = Object.FindObjectOfType<TransitionManager>();
             _initiateAction.EnableDirectAction();
             InputSystem.onAfterUpdate += HandleInput;
         }
 
-        private void HandleInput()
+        internal override async Task OnDeinitialization()
         {
-            if (_initiateAction.action.WasPressedThisFrame())
+            _initiateAction.DisableDirectAction();
+            InputSystem.onAfterUpdate -= HandleInput;
+            while (IsTransitioning)
             {
+                await Task.Delay(1);
+            }
+
+            if (_fade != null)
+            {
+                Object.Destroy(_fade.gameObject);
+            }
+            _wasPressed = false;
+        }
+
+        private async void HandleInput()
+        {
+            if (_initiateAction.action.ReadValue<float>() > 0.7f && !_wasPressed)
+            {
+                _wasPressed = true;
                 TriggerTransition();
             }
+            if (_initiateAction.action.ReadValue<float>() < 0.3f && _wasPressed)
+            {
+                _wasPressed = false;
+            }
+            
         }
 
         internal override async Task OnTriggerTransition()
@@ -74,7 +97,7 @@ public class FadeTransition : Transition
                 transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(FadeTransition));
             if (transition != null)
             {
-                await transition.Initialization();
+                await transition.OnInitialization();
                 transition.TriggerTransition();
             }
             else

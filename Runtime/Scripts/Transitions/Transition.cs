@@ -11,14 +11,16 @@ namespace Scripts
     public abstract class Transition
     {
         public Transform Destination => _destination;
-        public bool IsTransitioning => _isTransitioning;
+        public bool IsTransitioning { get; private set; }
+        [field: SerializeField, DisableProperty]
+        public bool IsInitialized { get; private set; }
         
         [SerializeField]
         private Transform _destination;
         private TransitionManager _manager;
         private Context _targetContext;
-        private bool _isTransitioning;
-        public abstract Task Initialization();
+        internal abstract Task OnInitialization();
+        internal abstract Task OnDeinitialization();
         internal abstract Task  OnTriggerTransition();
         public abstract Context GetStartContext();
         public virtual Context GetTargetContext()
@@ -30,6 +32,26 @@ namespace Scripts
 
             return _targetContext;
         }
+
+        public async Task Initialize()
+        {
+            if (IsInitialized)
+            {
+                return;
+            }
+            await OnInitialization();
+            IsInitialized = true;
+        }
+
+        public async Task Deinitialize()
+        {
+            if (!IsInitialized)
+            {
+                return;
+            }
+            await OnDeinitialization();
+            IsInitialized = false;
+        }
         
         public async Task TriggerTransition()
         {
@@ -38,12 +60,12 @@ namespace Scripts
                 _manager = Object.FindObjectOfType<TransitionManager>();
             }
 
-            if (_manager.CurrentContext != GetStartContext() || _isTransitioning)
+            if (_manager.CurrentContext != GetStartContext() || IsTransitioning)
             {
                 return;
             }
 
-            _isTransitioning = true;
+            IsTransitioning = true;
             Context.OnExit?.Invoke(GetStartContext());
 
             Debug.Log("Transition");
@@ -53,7 +75,7 @@ namespace Scripts
             Physics.SyncTransforms();
             
             Context.OnEnter?.Invoke(GetTargetContext());
-            _isTransitioning = false;
+            IsTransitioning = false;
         }
     }
 }

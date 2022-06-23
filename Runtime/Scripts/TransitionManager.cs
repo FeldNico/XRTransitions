@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Scripts;
+using Scripts.Transformation;
+using Scripts.Transitions.Cut;
 using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEngine;
@@ -52,16 +54,77 @@ public class TransitionManager : MonoBehaviour
             _currentContext = context;
         };
     }
-    
-    private void Start()
+
+    public async Task InitializeTransitionType(Type type)
     {
-        Initialization();
+        await Task.WhenAll(Transitions.Where(transition => transition.GetType() != type && transition.IsInitialized).Select(transition => transition.Deinitialize()));
+        await Task.WhenAll(Transitions.Where(transition => transition.GetType() == type).Select(transition => transition.Initialize()));
     }
 
-    private async void Initialization()
+    [MenuItem("Transition/Initialize/Transformation")]
+    public static void InitializeTransformations()
     {
-        var tasks = Transitions.Select(transition => transition.Initialization());
-        await Task.WhenAll(tasks);
-        Debug.Log("INIT!");
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+        
+        var tm = FindObjectOfType<TransitionManager>();
+        tm.InitializeTransitionType(typeof(TransformationTransition));
+    }
+    [MenuItem("Transition/Initialize/Portal")]
+    public static void InitializePortals()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+        
+        var tm = FindObjectOfType<TransitionManager>();
+        tm.InitializeTransitionType(typeof(PortalTransition));
+    }
+    [MenuItem("Transition/Initialize/Cut")]
+    public static void InitializeCuts()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+        
+        var tm = FindObjectOfType<TransitionManager>();
+        tm.InitializeTransitionType(typeof(CutTransition));
+    }
+    [MenuItem("Transition/Initialize/Fade")]
+    public static void InitializeFades()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+        
+        var tm = FindObjectOfType<TransitionManager>();
+        tm.InitializeTransitionType(typeof(FadeTransition));
+    }
+    [MenuItem("Transition/Initialize/Dissolve")]
+    public static void InitializeDissolve()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+        
+        var tm = FindObjectOfType<TransitionManager>();
+        tm.InitializeTransitionType(typeof(DissolveTransition));
+    }
+    [MenuItem("Transition/Initialize/Orbs")]
+    public static void InitializeOrbs()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+        
+        var tm = FindObjectOfType<TransitionManager>();
+        tm.InitializeTransitionType(typeof(OrbTransition));
     }
 }

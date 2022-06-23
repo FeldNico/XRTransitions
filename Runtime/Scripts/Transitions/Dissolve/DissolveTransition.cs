@@ -31,6 +31,8 @@ namespace Scripts
         private Dissolve _dissolve;
         private TransitionManager _transitionManager;
 
+        private bool _wasPressed = false;
+
         internal override async Task OnTriggerTransition()
         {
             _dissolve = Object.Instantiate(DissolvePrefab).GetComponent<Dissolve>();
@@ -49,7 +51,7 @@ namespace Scripts
             _dissolve = null;
         }
 
-        public override async Task Initialization()
+        internal override async Task OnInitialization()
         {
             _transitionManager = Object.FindObjectOfType<TransitionManager>();
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !_transitionManager.MainCamera.stereoEnabled)
@@ -59,12 +61,33 @@ namespace Scripts
             _initiateAction.EnableDirectAction();
             InputSystem.onAfterUpdate += HandleInput;
         }
-
-        private void HandleInput()
+        
+        internal override async Task OnDeinitialization()
         {
-            if (_initiateAction.action.WasPressedThisFrame())
+            _initiateAction.DisableDirectAction();
+            InputSystem.onAfterUpdate -= HandleInput;
+            while (IsTransitioning)
             {
+                await Task.Delay(1);
+            }
+
+            if (_dissolve != null)
+            {
+                Object.Destroy(_dissolve.gameObject);
+            }
+            _wasPressed = false;
+        }
+
+        private async void HandleInput()
+        {
+            if (_initiateAction.action.ReadValue<float>() > 0.7f && !_wasPressed)
+            {
+                _wasPressed = true;
                 TriggerTransition();
+            }
+            if (_initiateAction.action.ReadValue<float>() < 0.3f && _wasPressed)
+            {
+                _wasPressed = false;
             }
         }
 
@@ -87,7 +110,7 @@ namespace Scripts
                 transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(DissolveTransition));
             if (transition != null)
             {
-                await transition.Initialization();
+                await transition.OnInitialization();
                 transition.TriggerTransition();
             }
             else

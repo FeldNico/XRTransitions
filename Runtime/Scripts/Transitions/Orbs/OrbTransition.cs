@@ -24,7 +24,9 @@ public class OrbTransition : Transition
     private Orb _orb;
 
     private TransitionManager _transitionManager;
+    private bool _wasPressed;
 
+    
     internal override Task OnTriggerTransition()
     {
         var localToWorldMatrix = Destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _orb.LocalDummy.transform.worldToLocalMatrix * _transitionManager.MainCamera.transform.localToWorldMatrix;
@@ -37,7 +39,7 @@ public class OrbTransition : Transition
         return Task.CompletedTask;
     }
 
-    public override async Task Initialization()
+    internal override async Task OnInitialization()
     {
         _transitionManager = Object.FindObjectOfType<TransitionManager>();
         while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !_transitionManager.MainCamera.stereoEnabled)
@@ -47,24 +49,37 @@ public class OrbTransition : Transition
         _initiateAction.EnableDirectAction();
         InputSystem.onAfterUpdate += HandleInput;
     }
+    
+    internal override async Task OnDeinitialization()
+    {
+        _initiateAction.EnableDirectAction();
+        InputSystem.onAfterUpdate += HandleInput;
+        while (IsTransitioning)
+        {
+            await Task.Delay(1);
+        }
+
+        Deinitiate();
+        _wasPressed = false;
+    }
+
 
     public override Context GetStartContext()
     {
         return _startContext;
     }
 
-    private void HandleInput()
+    private async void HandleInput()
     {
-        if (_transitionManager.CurrentContext == GetStartContext())
+        if (_initiateAction.action.ReadValue<float>() > 0.7f && !_wasPressed)
         {
-            if (_initiateAction.action.WasPressedThisFrame())
-            {
-                Initiate();
-            }
-            else if (_initiateAction.action.WasReleasedThisFrame())
-            {
-                Deinitiate();
-            }
+            _wasPressed = true;
+            Initiate();
+        }
+        if (_initiateAction.action.ReadValue<float>() < 0.3f && _wasPressed)
+        {
+            _wasPressed = false;
+            Deinitiate();
         }
     }
     
