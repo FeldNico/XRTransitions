@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 573785a4c1889634ca7d6ac3050d1a82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -159,7 +159,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 573785a4c1889634ca7d6ac3050d1a82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -256,7 +256,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 573785a4c1889634ca7d6ac3050d1a82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -342,7 +342,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3579940d6ff4cb4d985994f5d5ff303, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _planeRenderer: {fileID: 8386987499017686775}
+  <PlaneRenderer>k__BackingField: {fileID: 8386987499017686775}
+  _animationTime: 0.15
+  _opaqueMaterial: {fileID: 2100000, guid: 573785a4c1889634ca7d6ac3050d1a82, type: 2}
+  _transparentMaterial: {fileID: 2100000, guid: 37ff1cfee7eb26e459d16796b1af9b81, type: 2}
 --- !u!65 &9057165212009936277
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -354,8 +357,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.2133939, y: 2.005074, z: 0.055264197}
-  m_Center: {x: 0.0022579134, y: 0.9978063, z: 0.0072486736}
+  m_Size: {x: 1.2133939, y: 2.005074, z: 0.25964436}
+  m_Center: {x: 0.0022579432, y: 0.9978063, z: -0.003064081}
 --- !u!54 &9158914459738068865
 Rigidbody:
   m_ObjectHideFlags: 0

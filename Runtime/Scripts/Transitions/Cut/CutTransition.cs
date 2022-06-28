@@ -16,22 +16,17 @@ namespace Scripts.Transitions.Cut
         private Context _startContext;
         [SerializeField]
         private InputActionProperty _initiateAction;
-
-        private TransitionManager _transitionManager;
+        
         private bool _wasPressed = false;
         
         internal override async Task OnTriggerTransition()
         {
-            _transitionManager.XROrigin.MoveCameraToWorldLocation(Destination.position);
-            var rotDiff = Destination.rotation * Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
-            rotDiff.ToAngleAxis(out var angle, out var axis);
-            _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
+            TransitionManager.XROrigin.transform.position = Destination.position;
             await Task.CompletedTask;
         }
 
         internal override async Task OnInitialization()
         {
-            _transitionManager = Object.FindObjectOfType<TransitionManager>();
             _initiateAction.EnableDirectAction();
             InputSystem.onAfterUpdate += HandleInput;
             await Task.CompletedTask;
@@ -74,7 +69,7 @@ namespace Scripts.Transitions.Cut
             
             var transitionManager = Object.FindObjectOfType<TransitionManager>();
             var transition =
-                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(CutTransition));
+                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(CutTransition) && transitionManager.CurrentContext == transition.GetStartContext());
             if (transition != null)
             {
                 await transition.OnInitialization();

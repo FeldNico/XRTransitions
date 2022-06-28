@@ -18,15 +18,13 @@ public class FadeTransition : Transition
         [SerializeField] private float _duration;
         [SerializeField]
         private InputActionProperty _initiateAction;
-
-        private TransitionManager _transitionManager;
+        
         private bool _wasPressed;
 
         private Fade _fade;
         
         internal override async Task OnInitialization()
         {
-            _transitionManager = Object.FindObjectOfType<TransitionManager>();
             _initiateAction.EnableDirectAction();
             InputSystem.onAfterUpdate += HandleInput;
         }
@@ -35,7 +33,7 @@ public class FadeTransition : Transition
         {
             _initiateAction.DisableDirectAction();
             InputSystem.onAfterUpdate -= HandleInput;
-            while (IsTransitioning)
+            while (TransitionManager.IsTransitioning)
             {
                 await Task.Delay(1);
             }
@@ -67,13 +65,8 @@ public class FadeTransition : Transition
             _fade.Initialize(this);
 
             await _fade.FadeOut(_duration / 2f, _color);
-            
-            var localToWorldMatrix = Destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _transitionManager.XROrigin.transform.worldToLocalMatrix * _transitionManager.MainCamera.transform.localToWorldMatrix;
-            _transitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
-            Quaternion targetRotation = localToWorldMatrix.rotation *
-                                        Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
-            targetRotation.ToAngleAxis(out var angle,out var axis);
-            _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
+
+            TransitionManager.XROrigin.transform.position = Destination.position;
 
             await _fade.FadeIn(_duration / 2f);
         }

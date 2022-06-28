@@ -94,8 +94,10 @@ public class Dissolve : MonoBehaviour
     {
         foreach (var (originalTransform, dummyTransform) in _dummyList)
         {
-            var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _localDummy.worldToLocalMatrix * originalTransform.localToWorldMatrix;
-            dummyTransform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
+            dummyTransform.position =
+                _destination.transform.TransformPoint(_transitionManager.XROrigin.transform.InverseTransformPoint(originalTransform.position));
+            dummyTransform.rotation = _destination.transform.TransformRotation(
+                _transitionManager.XROrigin.transform.InverseTransformRotation(originalTransform.rotation));
         }
     }
 

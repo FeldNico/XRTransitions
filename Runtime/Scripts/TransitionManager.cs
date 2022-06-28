@@ -8,6 +8,7 @@ using Scripts.Transitions.Cut;
 using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class TransitionManager : MonoBehaviour
@@ -22,6 +23,13 @@ public class TransitionManager : MonoBehaviour
     public Transform RightEyeTransform => _rightEyeTransform;
     public Context CurrentContext => _currentContext;
     
+    public bool IsTransitioning { get; private set;  }
+    
+    public Transition CurrentTransition { get; private set; }
+
+    public UnityAction<Transition> OnStartTransition;
+    public UnityAction<Transition> OnEndTransition;
+
     [SerializeField]
     private Camera _mainCamera;
     [SerializeField]
@@ -53,6 +61,26 @@ public class TransitionManager : MonoBehaviour
         {
             _currentContext = context;
         };
+
+        OnStartTransition += t =>
+        {
+            IsTransitioning = true;
+            CurrentTransition = t;
+        };
+
+        OnEndTransition += t =>
+        {
+            IsTransitioning = false;
+            if (t == CurrentTransition)
+            {
+                CurrentTransition = null;
+            }
+        };
+    }
+
+    private void Start()
+    {
+        InitializeTransitionType(typeof(PortalTransition));
     }
 
     public async Task InitializeTransitionType(Type type)

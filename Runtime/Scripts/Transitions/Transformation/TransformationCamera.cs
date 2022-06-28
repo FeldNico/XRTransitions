@@ -19,7 +19,6 @@ namespace Scripts.Transformation
         private Camera.StereoscopicEye _eye;
         private Renderer _transformationRenderer;
         private Transform _eyeTransform;
-        private Transform _localDummy;
         private Transform _destination;
         
         private static readonly int LeftRenderTexture = Shader.PropertyToID("_LeftEyeTexture");
@@ -32,7 +31,6 @@ namespace Scripts.Transformation
 
         public void Initialize(Transformation transformation, TransformationTransition transition, Camera.StereoscopicEye eye)
         {
-            _localDummy = transformation.LocalDummy;
             _destination = transition.Destination;
             transform.parent = _destination;
             transform.localPosition = Vector3.zero;
@@ -95,8 +93,10 @@ namespace Scripts.Transformation
         {
             if (_isInitialized && InputState.currentUpdateType == InputUpdateType.BeforeRender )
             {
-                var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _localDummy.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
-                transform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
+                transform.position =
+                    _destination.transform.TransformPoint(_transitionManager.XROrigin.transform.InverseTransformPoint(_eyeTransform.position));
+                transform.rotation = _destination.transform.TransformRotation(
+                    _transitionManager.XROrigin.transform.InverseTransformRotation(_eyeTransform.rotation));
                 //SetNearClipPlane();
                 _camera.Render();
             }

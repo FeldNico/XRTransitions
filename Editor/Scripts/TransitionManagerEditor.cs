@@ -27,7 +27,7 @@ namespace Editor.Scripts
             EditorGUILayout.ObjectField(serializedObject.FindProperty("_mainCamera"));
             EditorGUILayout.ObjectField(serializedObject.FindProperty("_leftEyeTransform"));
             EditorGUILayout.ObjectField(serializedObject.FindProperty("_rightEyeTransform"));
-            
+
             _foldout = EditorGUILayout.Foldout(_foldout, "Transitions");
             if (_foldout)
             {

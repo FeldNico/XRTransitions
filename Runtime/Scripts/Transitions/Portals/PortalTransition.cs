@@ -19,26 +19,25 @@ namespace Scripts
         [SerializeField] private GameObject _portalBasePrefab;
         [SerializeField] private InputActionProperty _initiateAction;
         private Context _startContext;
-        private TransitionManager _transitionManager;
         private Portal _portal;
+        private Portal _destinationPortal;
         private GameObject _portalBase;
         private bool _wasPressed = false;
         private bool _isAnimating = false;
 
         internal override async Task OnInitialization()
         {
-            _transitionManager = Object.FindObjectOfType<TransitionManager>();
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete ||
-                   !_transitionManager.MainCamera.stereoEnabled)
+                   !TransitionManager.MainCamera.stereoEnabled)
             {
                 await Task.Delay(1);
             }
 
             _portalBase = Object.Instantiate(_portalBasePrefab, _portalPosition);
             _initiateAction.EnableDirectAction();
-            if (_transitionManager.MainCamera.GetComponent<Collider>() == null)
+            if (TransitionManager.MainCamera.GetComponent<Collider>() == null)
             {
-                _transitionManager.MainCamera.gameObject.AddComponent<SphereCollider>().radius = 0.1f;
+                TransitionManager.MainCamera.gameObject.AddComponent<SphereCollider>().radius = 0.1f;
             }
 
             InputSystem.onAfterUpdate += HandleInput;
@@ -48,7 +47,7 @@ namespace Scripts
         {
             _initiateAction.DisableDirectAction();
             InputSystem.onAfterUpdate -= HandleInput;
-            while (_isAnimating || IsTransitioning)
+            while (_isAnimating || TransitionManager.IsTransitioning)
             {
                 await Task.Delay(1);
             }
@@ -60,12 +59,12 @@ namespace Scripts
 
             if (_portal != null)
             {
-                await _portal.Destroy();
+                await Task.WhenAll(_portal.Destroy()/*, _destinationPortal.Destroy()*/);
             }
             
-            if (_transitionManager.MainCamera.GetComponent<Collider>() != null)
+            if (TransitionManager.MainCamera.GetComponent<Collider>() != null)
             {
-                Object.Destroy(_transitionManager.MainCamera.GetComponent<Collider>());
+                Object.Destroy(TransitionManager.MainCamera.GetComponent<Collider>());
             }
             
             _wasPressed = false;
@@ -73,7 +72,7 @@ namespace Scripts
 
         private async void HandleInput()
         {
-            if (_isAnimating || _transitionManager.CurrentContext != GetStartContext())
+            if (_isAnimating || TransitionManager.CurrentContext != GetStartContext())
             {
                 return;
             }
@@ -84,16 +83,17 @@ namespace Scripts
                 _isAnimating = true;
                 if (_portal == null)
                 {
-                    var portalToCam = _transitionManager.MainCamera.transform.position - _portalPosition.position;
+                    var portalToCam = TransitionManager.MainCamera.transform.position - _portalPosition.position;
                     portalToCam.y = 0;
                     _portal = Object.Instantiate(_portalPrefab, _portalPosition.position,
                         Quaternion.LookRotation(portalToCam, Vector3.up), _portalPosition).GetComponent<Portal>();
                     Destination.rotation = Quaternion.LookRotation(portalToCam, Vector3.up);
+                    //_destinationPortal = Object.Instantiate(_portalPrefab, Destination).GetComponent<Portal>();
                     await _portal.Initialize(this);
                 }
                 else
                 {
-                    await _portal.Destroy();
+                    await Task.WhenAll(_portal.Destroy()/*, _destinationPortal.Destroy()*/);
                 }
                 
                 _isAnimating = false;
@@ -110,14 +110,14 @@ namespace Scripts
             var localToWorldMatrix = Destination.localToWorldMatrix *
                                      Matrix4x4.Rotate(Quaternion.AngleAxis(180f, Vector3.up)) *
                                      _portal.transform.worldToLocalMatrix *
-                                     _transitionManager.MainCamera.transform.localToWorldMatrix;
-            _transitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
+                                     TransitionManager.MainCamera.transform.localToWorldMatrix;
+            TransitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
             Quaternion targetRotation =
                 Quaternion.FromToRotation(_portal.transform.forward, Destination.forward) *
                 Quaternion.AngleAxis(180f, Vector3.up);
             targetRotation.ToAngleAxis(out var angle, out var axis);
-            _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
-            await _portal.Destroy();
+            TransitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
+            await Task.WhenAll(_portal.Destroy()/*, _destinationPortal.Destroy()*/);
         }
 
         public override Context GetStartContext()

@@ -17,12 +17,10 @@ namespace Scripts.Transformation
         private InputActionProperty _initiateAction;
         
         private Transformation _transformation;
-        private TransitionManager _transitionManager;
         private bool _wasPressed;
         internal override async Task OnInitialization()
         {
-            _transitionManager = Object.FindObjectOfType<TransitionManager>();
-            while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !_transitionManager.MainCamera.stereoEnabled)
+            while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !TransitionManager.MainCamera.stereoEnabled)
             {
                 await Task.Delay(1);
             }
@@ -34,7 +32,7 @@ namespace Scripts.Transformation
         {
             _initiateAction.DisableDirectAction();
             InputSystem.onAfterUpdate -= HandleInput;
-            while (IsTransitioning)
+            while (TransitionManager.IsTransitioning)
             {
                 await Task.Delay(1);
             }
@@ -65,13 +63,8 @@ namespace Scripts.Transformation
             _transformation.Initialize(this);
             
             await _transformation.BlendForSeconds(_duration);
-            
-            var localToWorldMatrix = Destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _transformation.LocalDummy.transform.worldToLocalMatrix * _transitionManager.MainCamera.transform.localToWorldMatrix;
-            _transitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
-            Quaternion targetRotation = localToWorldMatrix.rotation *
-                                        Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
-            targetRotation.ToAngleAxis(out var angle,out var axis);
-            _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
+
+            TransitionManager.XROrigin.transform.position = Destination.position;
 
             Object.Destroy(_transformation.gameObject);
             _transformation = null;

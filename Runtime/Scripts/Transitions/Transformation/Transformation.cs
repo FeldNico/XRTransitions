@@ -12,14 +12,12 @@ namespace Scripts.Transformation
         private static readonly int Progress = Shader.PropertyToID("_Progress");
 
         public Renderer Renderer => _renderer;
-        public Transform LocalDummy => _localDummy;
 
         [SerializeField] private Renderer _renderer;
         private TransformationCamera _leftPortalCamera;
         private TransformationCamera _rightPortalCamera;
         private TransitionManager _transitionManager;
         private Transform _destination;
-        private Transform _localDummy;
         private List<(Transform, Transform)> _dummyList = new();
 
         private void Awake()
@@ -30,12 +28,6 @@ namespace Scripts.Transformation
             }
 
             _transitionManager = FindObjectOfType<TransitionManager>();
-            _localDummy = new GameObject("TransformationLocalDummy").transform;
-            //_localDummy.parent = _transitionManager.XROrigin.transform;
-            var camPos = _transitionManager.MainCamera.transform.position;
-            camPos.y = _transitionManager.XROrigin.transform.position.y;
-            _localDummy.position = camPos;
-            _localDummy.rotation = Quaternion.identity;
         }
 
         public void Initialize(TransformationTransition transition)
@@ -65,7 +57,6 @@ namespace Scripts.Transformation
                 dummyFilter.GetCopyOf(filter);
                 dummyRenderer.GetCopyOf(filter.GetComponent<MeshRenderer>());
                 dummyRenderer.bounds = new Bounds(Vector3.zero, Vector3.one * 10000f);
-                dummy.transform.parent = _localDummy;
                 dummy.transform.localScale = filter.transform.lossyScale;
                 _dummyList.Add((filter.transform,dummy.transform));
             }
@@ -91,17 +82,15 @@ namespace Scripts.Transformation
         {
             foreach (var (originalTransform, dummyTransform) in _dummyList)
             {
-                var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _localDummy.worldToLocalMatrix * originalTransform.localToWorldMatrix;
-                dummyTransform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
+                dummyTransform.position =
+                    _destination.transform.TransformPoint(_transitionManager.XROrigin.transform.InverseTransformPoint(originalTransform.position));
+                dummyTransform.rotation = _destination.transform.TransformRotation(
+                    _transitionManager.XROrigin.transform.InverseTransformRotation(originalTransform.rotation));
             }
         }
 
         private void OnDestroy()
         {
-            if (_localDummy != null)
-            {
-                Destroy(_localDummy.gameObject);
-            }
 
             if (_leftPortalCamera != null)
             {

@@ -29,7 +29,6 @@ namespace Scripts
         private InputActionProperty _initiateAction;
         
         private Dissolve _dissolve;
-        private TransitionManager _transitionManager;
 
         private bool _wasPressed = false;
 
@@ -39,13 +38,8 @@ namespace Scripts
             _dissolve.Initialize(this);
             
             await _dissolve.BlendForSeconds(Duration);
-            
-            var localToWorldMatrix = Destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _dissolve.LocalDummy.transform.worldToLocalMatrix * _transitionManager.MainCamera.transform.localToWorldMatrix;
-            _transitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
-            Quaternion targetRotation = localToWorldMatrix.rotation *
-                                        Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
-            targetRotation.ToAngleAxis(out var angle,out var axis);
-            _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
+
+            TransitionManager.XROrigin.transform.position = Destination.transform.position;
 
             Object.Destroy(_dissolve.gameObject);
             _dissolve = null;
@@ -53,8 +47,7 @@ namespace Scripts
 
         internal override async Task OnInitialization()
         {
-            _transitionManager = Object.FindObjectOfType<TransitionManager>();
-            while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !_transitionManager.MainCamera.stereoEnabled)
+            while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !TransitionManager.MainCamera.stereoEnabled)
             {
                 await Task.Delay(1);
             }
@@ -66,7 +59,7 @@ namespace Scripts
         {
             _initiateAction.DisableDirectAction();
             InputSystem.onAfterUpdate -= HandleInput;
-            while (IsTransitioning)
+            while (TransitionManager.IsTransitioning)
             {
                 await Task.Delay(1);
             }

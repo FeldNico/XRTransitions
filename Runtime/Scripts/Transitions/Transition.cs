@@ -10,14 +10,14 @@ namespace Scripts
     [Serializable]
     public abstract class Transition
     {
-        public Transform Destination => _destination;
-        public bool IsTransitioning { get; private set; }
+        [field: SerializeField]
+        public Transform Destination  { get; private set; }
+
         [field: SerializeField, DisableProperty]
         public bool IsInitialized { get; private set; }
         
-        [SerializeField]
-        private Transform _destination;
-        private TransitionManager _manager;
+        public TransitionManager TransitionManager { get; private set; }
+
         private Context _targetContext;
         internal abstract Task OnInitialization();
         internal abstract Task OnDeinitialization();
@@ -39,6 +39,7 @@ namespace Scripts
             {
                 return;
             }
+            TransitionManager = Object.FindObjectOfType<TransitionManager>();
             await OnInitialization();
             IsInitialized = true;
         }
@@ -55,17 +56,12 @@ namespace Scripts
         
         public async Task TriggerTransition()
         {
-            if (_manager == null)
-            {
-                _manager = Object.FindObjectOfType<TransitionManager>();
-            }
-
-            if (_manager.CurrentContext != GetStartContext() || IsTransitioning)
+            if (!IsInitialized || TransitionManager.CurrentContext != GetStartContext() || TransitionManager.IsTransitioning)
             {
                 return;
             }
 
-            IsTransitioning = true;
+            TransitionManager.OnStartTransition?.Invoke(this);
             Context.OnExit?.Invoke(GetStartContext());
 
             Debug.Log("Transition");
@@ -73,9 +69,11 @@ namespace Scripts
             await OnTriggerTransition();
 
             Physics.SyncTransforms();
+
+            await Task.Yield();
             
             Context.OnEnter?.Invoke(GetTargetContext());
-            IsTransitioning = false;
+            TransitionManager.OnEndTransition?.Invoke(this);
         }
     }
 }

@@ -10,10 +10,10 @@ using UnityEngine;
 
 public class Portal : MonoBehaviour
 {
-    public Renderer PlaneRenderer => _planeRenderer;
-    
-    [SerializeField]
-    private Renderer _planeRenderer;
+    [field: SerializeField]
+    public Renderer PlaneRenderer { get; private set; }
+
+    [SerializeField] private float _animationTime = 0.15f;
 
     private bool _isInitialized = false;
     
@@ -29,9 +29,9 @@ public class Portal : MonoBehaviour
     private bool _isPlayerInBounds = false;
     private void Awake()
     {
-        if (_planeRenderer == null)
+        if (PlaneRenderer == null)
         {
-            _planeRenderer = transform.Find("RenderPlane").GetComponent<MeshRenderer>();
+            PlaneRenderer = transform.Find("RenderPlane").GetComponent<MeshRenderer>();
         }
         _transitionManager = FindObjectOfType<TransitionManager>();
         _mainCameraTransform = _transitionManager.MainCamera.transform;
@@ -58,15 +58,14 @@ public class Portal : MonoBehaviour
         };
 
         transform.localScale = Vector3.zero;
-
+        
         var startTime = Time.time;
-        while (Time.time < startTime + 0.15f)
+        while (Time.time < startTime + _animationTime)
         {
             transform.localScale =
-                Vector3.Lerp(Vector3.zero, Vector3.one, (Time.time - startTime) / 0.15f);
+                Vector3.Lerp(Vector3.zero, Vector3.one, (Time.time - startTime) / _animationTime);
             await Task.Delay(1);
         }
-
         transform.localScale = Vector3.one;
 
         _isInitialized = true;
@@ -160,7 +159,6 @@ public class Portal : MonoBehaviour
 
         if (_isInitialized && _transition.GetStartContext() == _transitionManager.CurrentContext && Math.Sign(Vector3.Dot(_mainCameraTransform.position - transform.position, transform.forward)) < 0)
         {
-            Debug.Log("Rotate");
             transform.rotation *= Quaternion.AngleAxis(180f,Vector3.up);
             _transition.Destination.rotation *= Quaternion.AngleAxis(180f,Vector3.up);
         }
@@ -181,12 +179,12 @@ public class Portal : MonoBehaviour
     public async Task Destroy()
     {
         transform.localScale = Vector3.one;
-
+        
         var startTime = Time.time;
-        while (Time.time < startTime + 0.15f)
+        while (Time.time < startTime + _animationTime)
         {
             transform.localScale =
-                Vector3.Lerp(Vector3.one, Vector3.zero, (Time.time - startTime) / 0.15f);
+                Vector3.Lerp(Vector3.one, Vector3.zero, (Time.time - startTime) / _animationTime);
             await Task.Delay(1);
         }
         Destroy(gameObject);

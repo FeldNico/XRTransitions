@@ -22,27 +22,20 @@ public class OrbTransition : Transition
     [SerializeField]
     private InputActionProperty _initiateAction;
     private Orb _orb;
-
-    private TransitionManager _transitionManager;
+    
     private bool _wasPressed;
 
     
     internal override Task OnTriggerTransition()
     {
-        var localToWorldMatrix = Destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _orb.LocalDummy.transform.worldToLocalMatrix * _transitionManager.MainCamera.transform.localToWorldMatrix;
-        _transitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
-        Quaternion targetRotation = localToWorldMatrix.rotation *
-                                    Quaternion.Inverse(_transitionManager.MainCamera.transform.rotation);
-        targetRotation.ToAngleAxis(out var angle,out var axis);
-        _transitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
+        TransitionManager.XROrigin.transform.position = Destination.position;
         Deinitiate();
         return Task.CompletedTask;
     }
 
     internal override async Task OnInitialization()
     {
-        _transitionManager = Object.FindObjectOfType<TransitionManager>();
-        while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !_transitionManager.MainCamera.stereoEnabled)
+        while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !TransitionManager.MainCamera.stereoEnabled)
         {
             await Task.Delay(1);
         }
@@ -54,7 +47,7 @@ public class OrbTransition : Transition
     {
         _initiateAction.EnableDirectAction();
         InputSystem.onAfterUpdate += HandleInput;
-        while (IsTransitioning)
+        while (TransitionManager.IsTransitioning)
         {
             await Task.Delay(1);
         }
@@ -71,6 +64,11 @@ public class OrbTransition : Transition
 
     private async void HandleInput()
     {
+        if (TransitionManager.CurrentContext != GetStartContext())
+        {
+            return;
+        }
+        
         if (_initiateAction.action.ReadValue<float>() > 0.7f && !_wasPressed)
         {
             _wasPressed = true;
@@ -100,11 +98,12 @@ public class OrbTransition : Transition
 
     private void Deinitiate()
     {
-        Debug.Log("Deinitiate");
         if (_orb == null)
         {
             return;
         }
+        
+        Debug.Log("Deinitiate");
         
         Object.Destroy(_orb.gameObject);
         _orb = null;
