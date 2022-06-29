@@ -16,12 +16,10 @@ namespace Scripts
     {
         [SerializeField] private Transform _portalPosition;
         [SerializeField] private GameObject _portalPrefab;
-        [SerializeField] private GameObject _portalBasePrefab;
         [SerializeField] private InputActionProperty _initiateAction;
         private Context _startContext;
         private Portal _portal;
         private Portal _destinationPortal;
-        private GameObject _portalBase;
         private bool _wasPressed = false;
         private bool _isAnimating = false;
 
@@ -32,8 +30,7 @@ namespace Scripts
             {
                 await Task.Delay(1);
             }
-
-            _portalBase = Object.Instantiate(_portalBasePrefab, _portalPosition);
+            
             _initiateAction.EnableDirectAction();
             if (TransitionManager.MainCamera.GetComponent<Collider>() == null)
             {
@@ -50,11 +47,6 @@ namespace Scripts
             while (_isAnimating || TransitionManager.IsTransitioning)
             {
                 await Task.Delay(1);
-            }
-
-            if (_portalBase != null)
-            {
-                Object.Destroy(_portalBase);
             }
 
             if (_portal != null)
