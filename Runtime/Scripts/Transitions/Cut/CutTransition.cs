@@ -14,9 +14,7 @@ namespace Scripts.Transitions.Cut
     {
         [SerializeField]
         private Context _startContext;
-        [SerializeField]
-        private InputActionProperty _initiateAction;
-        
+
         private bool _wasPressed = false;
         
         internal override async Task OnTriggerTransition()
@@ -25,31 +23,23 @@ namespace Scripts.Transitions.Cut
             await Task.CompletedTask;
         }
 
-        internal override async Task OnInitialization()
+        internal override async Task OnActionPressed()
         {
-            _initiateAction.EnableDirectAction();
-            InputSystem.onAfterUpdate += HandleInput;
+            await TriggerTransition();
+        }
+
+        internal override async Task OnActionRelease()
+        {
             await Task.CompletedTask;
         }
-        
-        private async void HandleInput()
+
+        internal override async Task OnInitialization()
         {
-            if (_initiateAction.action.ReadValue<float>() > 0.7f && !_wasPressed)
-            {
-                _wasPressed = true;
-                TriggerTransition();
-            }
-            if (_initiateAction.action.ReadValue<float>() < 0.3f && _wasPressed)
-            {
-                _wasPressed = false;
-            }
+            await Task.CompletedTask;
         }
-        
+
         internal override async Task OnDeinitialization()
         {
-            _initiateAction.DisableDirectAction();
-            InputSystem.onAfterUpdate -= HandleInput;
-            _wasPressed = false;
             await Task.CompletedTask;
         }
         

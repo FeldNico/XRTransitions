@@ -5,12 +5,14 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class ControllerAnimator: MonoBehaviour
 {
-    private Material _material;
+    private Renderer _renderer;
     private TransitionManager _transitionManager;
 
+    public bool IsHidden { private set; get; }
+    
     private void Awake()
     {
-        _material = GetComponent<Renderer>().sharedMaterial;
+        _renderer = GetComponent<Renderer>();
         _transitionManager = FindObjectOfType<TransitionManager>();
     }
 
@@ -28,15 +30,17 @@ public class ControllerAnimator: MonoBehaviour
 
     public void Hide(Transition transition)
     {
-        var c = _material.color;
-        c.a = 1;
-        _material.color = c;
+        var c = _renderer.material.color;
+        c.a = 0;
+        _renderer.material.color = c;
+        IsHidden = true;
     }
 
     public void Show(Transition transition)
     {
-        var c = _material.color;
-        c.a = 0;
-        _material.color = c;
+        var c = _renderer.material.color;
+        c.a = 1;
+        _renderer.material.color = c;
+        IsHidden = false;
     }
 }

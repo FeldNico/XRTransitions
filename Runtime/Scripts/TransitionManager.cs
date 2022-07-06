@@ -21,8 +21,10 @@ public class TransitionManager : MonoBehaviour
     public Camera MainCamera => _mainCamera;
     public Transform LeftEyeTransform => _leftEyeTransform;
     public Transform RightEyeTransform => _rightEyeTransform;
-    public Context CurrentContext => _currentContext;
     
+    [field: SerializeField]
+    public Context CurrentContext { private set; get; }
+
     public bool IsTransitioning { get; private set;  }
     
     public Transition CurrentTransition { get; private set; }
@@ -36,30 +38,25 @@ public class TransitionManager : MonoBehaviour
     private Transform _leftEyeTransform;
     [SerializeField]
     private Transform _rightEyeTransform;
-    [SerializeReference]
-    private Context _currentContext;
     private XROrigin _xrOrigin;
 
+    
+    
     private void Awake()
     {
-        if (_currentContext == null)
-        {
-            Debug.LogError("No Current Context was defined. Please assign Current Context at your TransitionManager");
-        }
-
         _xrOrigin = FindObjectOfType<XROrigin>();
         
         Context.OnExit += context =>
         {
-            if (_currentContext == context)
+            if (CurrentContext == context)
             {
-                _currentContext = null;
+                CurrentContext = null;
             }
         };
         
         Context.OnEnter += context =>
         {
-            _currentContext = context;
+            CurrentContext = context;
         };
 
         OnStartTransition += t =>
@@ -76,13 +73,24 @@ public class TransitionManager : MonoBehaviour
                 CurrentTransition = null;
             }
         };
+        
+#if UNITY_EDITOR
+        CurrentContext = FindObjectsOfType<Context>().First(context => context.name == "Context 1");
+        
+        EditorApplication.playModeStateChanged += async change =>
+        {
+            if (change == PlayModeStateChange.ExitingPlayMode)
+            {
+                foreach (var t in Transitions.Where(transition => transition.IsInitialized))
+                {
+                    await t.Deinitialize();
+                }
+            }
+        };
+#endif
     }
-
-    private void Start()
-    {
-        InitializeTransitionType(typeof(PortalTransition));
-    }
-
+    
+    
     public async Task InitializeTransitionType(Type type)
     {
         await Task.WhenAll(Transitions.Where(transition => transition.GetType() != type && transition.IsInitialized).Select(transition => transition.Deinitialize()));

@@ -19,18 +19,27 @@ public class OrbTransition : Transition
     private GameObject _orbPrefab;
     [SerializeField]
     private Transform _controllerTransform;
-    [SerializeField]
-    private InputActionProperty _initiateAction;
-    private Orb _orb;
-    
-    private bool _wasPressed;
 
-    
+    private Orb _orb;
+
+
     internal override Task OnTriggerTransition()
     {
         TransitionManager.XROrigin.transform.position = Destination.position;
         Deinitiate();
         return Task.CompletedTask;
+    }
+
+    internal override async Task OnActionPressed()
+    {
+        Initiate();
+        await Task.CompletedTask;
+    }
+    
+    internal override async Task OnActionRelease()
+    {
+        Deinitiate();
+        await Task.CompletedTask;
     }
 
     internal override async Task OnInitialization()
@@ -39,21 +48,16 @@ public class OrbTransition : Transition
         {
             await Task.Delay(1);
         }
-        _initiateAction.EnableDirectAction();
-        InputSystem.onAfterUpdate += HandleInput;
     }
     
     internal override async Task OnDeinitialization()
     {
-        _initiateAction.EnableDirectAction();
-        InputSystem.onAfterUpdate += HandleInput;
         while (TransitionManager.IsTransitioning)
         {
             await Task.Delay(1);
         }
 
         Deinitiate();
-        _wasPressed = false;
     }
 
 
@@ -62,25 +66,6 @@ public class OrbTransition : Transition
         return _startContext;
     }
 
-    private async void HandleInput()
-    {
-        if (TransitionManager.CurrentContext != GetStartContext())
-        {
-            return;
-        }
-        
-        if (_initiateAction.action.ReadValue<float>() > 0.7f && !_wasPressed)
-        {
-            _wasPressed = true;
-            Initiate();
-        }
-        if (_initiateAction.action.ReadValue<float>() < 0.3f && _wasPressed)
-        {
-            _wasPressed = false;
-            Deinitiate();
-        }
-    }
-    
     private void Initiate()
     {
         Debug.Log("Initiate");

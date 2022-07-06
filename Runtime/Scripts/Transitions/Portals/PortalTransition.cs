@@ -16,11 +16,9 @@ namespace Scripts
     {
         [SerializeField] private Transform _portalPosition;
         [SerializeField] private GameObject _portalPrefab;
-        [SerializeField] private InputActionProperty _initiateAction;
         private Context _startContext;
         private Portal _portal;
         private Portal _destinationPortal;
-        private bool _wasPressed = false;
         private bool _isAnimating = false;
 
         internal override async Task OnInitialization()
@@ -31,19 +29,14 @@ namespace Scripts
                 await Task.Delay(1);
             }
             
-            _initiateAction.EnableDirectAction();
             if (TransitionManager.MainCamera.GetComponent<Collider>() == null)
             {
                 TransitionManager.MainCamera.gameObject.AddComponent<SphereCollider>().radius = 0.1f;
             }
-
-            InputSystem.onAfterUpdate += HandleInput;
         }
 
         internal override async Task OnDeinitialization()
         {
-            _initiateAction.DisableDirectAction();
-            InputSystem.onAfterUpdate -= HandleInput;
             while (_isAnimating || TransitionManager.IsTransitioning)
             {
                 await Task.Delay(1);
@@ -59,43 +52,7 @@ namespace Scripts
                 Object.Destroy(TransitionManager.MainCamera.GetComponent<Collider>());
             }
             
-            _wasPressed = false;
         }
-
-        private async void HandleInput()
-        {
-            if (_isAnimating || TransitionManager.CurrentContext != GetStartContext())
-            {
-                return;
-            }
-
-            if (_initiateAction.action.ReadValue<float>() > 0.7f && !_wasPressed)
-            {
-                _wasPressed = true;
-                _isAnimating = true;
-                if (_portal == null)
-                {
-                    var portalToCam = TransitionManager.MainCamera.transform.position - _portalPosition.position;
-                    portalToCam.y = 0;
-                    _portal = Object.Instantiate(_portalPrefab, _portalPosition.position,
-                        Quaternion.LookRotation(portalToCam, Vector3.up), _portalPosition).GetComponent<Portal>();
-                    Destination.rotation = Quaternion.LookRotation(portalToCam, Vector3.up);
-                    //_destinationPortal = Object.Instantiate(_portalPrefab, Destination).GetComponent<Portal>();
-                    await _portal.Initialize(this);
-                }
-                else
-                {
-                    await Task.WhenAll(_portal.Destroy()/*, _destinationPortal.Destroy()*/);
-                }
-                
-                _isAnimating = false;
-            }
-            if (_initiateAction.action.ReadValue<float>() < 0.3f && _wasPressed)
-            {
-                _wasPressed = false;
-            }
-        }
-
 
         internal override async Task OnTriggerTransition()
         {
@@ -109,7 +66,37 @@ namespace Scripts
                 Quaternion.AngleAxis(180f, Vector3.up);
             targetRotation.ToAngleAxis(out var angle, out var axis);
             TransitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
-            await Task.WhenAll(_portal.Destroy()/*, _destinationPortal.Destroy()*/);
+            await Task.WhenAll(_portal.Destroy());
+        }
+
+        internal override async Task OnActionPressed()
+        {
+            if (_isAnimating)
+            {
+                return;
+            }
+            
+            _isAnimating = true;
+            if (_portal == null)
+            {
+                var portalToCam = TransitionManager.MainCamera.transform.position - _portalPosition.position;
+                portalToCam.y = 0;
+                _portal = Object.Instantiate(_portalPrefab, _portalPosition.position,
+                    Quaternion.LookRotation(portalToCam, Vector3.up), _portalPosition).GetComponent<Portal>();
+                Destination.rotation = Quaternion.LookRotation(portalToCam, Vector3.up);
+                await _portal.Initialize(this);
+            }
+            else
+            {
+                await Task.WhenAll(_portal.Destroy());
+            }
+                
+            _isAnimating = false;
+        }
+
+        internal override async Task OnActionRelease()
+        {
+            await Task.CompletedTask;
         }
 
         public override Context GetStartContext()

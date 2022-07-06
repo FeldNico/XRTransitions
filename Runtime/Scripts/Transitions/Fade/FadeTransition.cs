@@ -16,23 +16,16 @@ public class FadeTransition : Transition
         [SerializeField] private GameObject _fadePrefab;
         [SerializeField] private Color _color = Color.black;
         [SerializeField] private float _duration;
-        [SerializeField]
-        private InputActionProperty _initiateAction;
-        
-        private bool _wasPressed;
 
         private Fade _fade;
         
         internal override async Task OnInitialization()
         {
-            _initiateAction.EnableDirectAction();
-            InputSystem.onAfterUpdate += HandleInput;
+            await Task.CompletedTask;
         }
 
         internal override async Task OnDeinitialization()
         {
-            _initiateAction.DisableDirectAction();
-            InputSystem.onAfterUpdate -= HandleInput;
             while (TransitionManager.IsTransitioning)
             {
                 await Task.Delay(1);
@@ -42,21 +35,6 @@ public class FadeTransition : Transition
             {
                 Object.Destroy(_fade.gameObject);
             }
-            _wasPressed = false;
-        }
-
-        private async void HandleInput()
-        {
-            if (_initiateAction.action.ReadValue<float>() > 0.7f && !_wasPressed)
-            {
-                _wasPressed = true;
-                TriggerTransition();
-            }
-            if (_initiateAction.action.ReadValue<float>() < 0.3f && _wasPressed)
-            {
-                _wasPressed = false;
-            }
-            
         }
 
         internal override async Task OnTriggerTransition()
@@ -69,6 +47,16 @@ public class FadeTransition : Transition
             TransitionManager.XROrigin.transform.position = Destination.position;
 
             await _fade.FadeIn(_duration / 2f);
+        }
+
+        internal override async Task OnActionPressed()
+        {
+            await TriggerTransition();
+        }
+
+        internal override async Task OnActionRelease()
+        {
+            await Task.CompletedTask;
         }
 
         public override Context GetStartContext()

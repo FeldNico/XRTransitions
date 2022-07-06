@@ -25,12 +25,7 @@ namespace Scripts
         [SerializeField] 
         private float _duration;
 
-        [SerializeField]
-        private InputActionProperty _initiateAction;
-        
         private Dissolve _dissolve;
-
-        private bool _wasPressed = false;
 
         internal override async Task OnTriggerTransition()
         {
@@ -45,20 +40,26 @@ namespace Scripts
             _dissolve = null;
         }
 
+        internal override async Task OnActionPressed()
+        {
+            await TriggerTransition();
+        }
+
+        internal override async Task OnActionRelease()
+        {
+            await Task.CompletedTask;
+        }
+
         internal override async Task OnInitialization()
         {
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !TransitionManager.MainCamera.stereoEnabled)
             {
                 await Task.Delay(1);
             }
-            _initiateAction.EnableDirectAction();
-            InputSystem.onAfterUpdate += HandleInput;
         }
         
         internal override async Task OnDeinitialization()
         {
-            _initiateAction.DisableDirectAction();
-            InputSystem.onAfterUpdate -= HandleInput;
             while (TransitionManager.IsTransitioning)
             {
                 await Task.Delay(1);
@@ -67,20 +68,6 @@ namespace Scripts
             if (_dissolve != null)
             {
                 Object.Destroy(_dissolve.gameObject);
-            }
-            _wasPressed = false;
-        }
-
-        private async void HandleInput()
-        {
-            if (_initiateAction.action.ReadValue<float>() > 0.7f && !_wasPressed)
-            {
-                _wasPressed = true;
-                TriggerTransition();
-            }
-            if (_initiateAction.action.ReadValue<float>() < 0.3f && _wasPressed)
-            {
-                _wasPressed = false;
             }
         }
 
@@ -100,7 +87,7 @@ namespace Scripts
             
             var transitionManager = Object.FindObjectOfType<TransitionManager>();
             var transition =
-                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(DissolveTransition));
+                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(DissolveTransition) && transition.GetStartContext() == transitionManager.CurrentContext);
             if (transition != null)
             {
                 await transition.OnInitialization();
