@@ -23,9 +23,10 @@ namespace Editor.Scripts
             }
 
             serializedObject.Update();
-            EditorGUILayout.ObjectField(serializedObject.FindProperty("_mainCamera"));
-            EditorGUILayout.ObjectField(serializedObject.FindProperty("_leftEyeTransform"));
-            EditorGUILayout.ObjectField(serializedObject.FindProperty("_rightEyeTransform"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_mainCamera"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_leftEyeTransform"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_rightEyeTransform"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_initiateAction"));
 
             _foldout = EditorGUILayout.Foldout(_foldout, "Transitions");
             if (_foldout)

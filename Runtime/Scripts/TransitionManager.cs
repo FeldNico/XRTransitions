@@ -9,7 +9,9 @@ using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
 public class TransitionManager : MonoBehaviour
 {
@@ -38,10 +40,10 @@ public class TransitionManager : MonoBehaviour
     private Transform _leftEyeTransform;
     [SerializeField]
     private Transform _rightEyeTransform;
+    [SerializeField] private InputActionProperty _initiateAction;
     private XROrigin _xrOrigin;
+    private InputDevice _currentPressedDevice = null;
 
-    
-    
     private void Awake()
     {
         _xrOrigin = FindObjectOfType<XROrigin>();
@@ -74,8 +76,16 @@ public class TransitionManager : MonoBehaviour
             }
         };
         
+        _initiateAction.EnableDirectAction();
+        InputSystem.onAfterUpdate += HandleInput;
+        
 #if UNITY_EDITOR
         CurrentContext = FindObjectsOfType<Context>().First(context => context.name == "Context 1");
+
+        foreach (var orbTransition in Transitions.OfType<OrbTransition>())
+        {
+            orbTransition.Initialize();
+        }
         
         EditorApplication.playModeStateChanged += async change =>
         {
@@ -90,7 +100,26 @@ public class TransitionManager : MonoBehaviour
 #endif
     }
     
-    
+    private async void HandleInput()
+    {
+        var transition = Transitions.FirstOrDefault(t => t.IsInitialized && t.GetStartContext() == CurrentContext);
+
+        if (transition != null && !IsTransitioning && _initiateAction.action.ReadValue<float>() > 0.7f && _currentPressedDevice == null)
+        {
+            _currentPressedDevice = _initiateAction.action.activeControl.device;
+            await transition.OnActionPressed();
+        }
+
+        if (_initiateAction.action.ReadValue<float>() < 0.3f && _initiateAction.action.activeControl != null && _initiateAction.action.activeControl.device == _currentPressedDevice)
+        {
+            _currentPressedDevice = null;
+            if (transition != null)
+            {
+                await transition?.OnActionRelease();
+            }
+        }
+    }
+
     public async Task InitializeTransitionType(Type type)
     {
         await Task.WhenAll(Transitions.Where(transition => transition.GetType() != type && transition.IsInitialized).Select(transition => transition.Deinitialize()));

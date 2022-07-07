@@ -19,12 +19,9 @@ namespace Scripts
         [field: SerializeField, DisableProperty]
         public bool IsInitialized { get; private set; }
 
-        [SerializeField] private InputActionProperty _initiateAction;
-
         public TransitionManager TransitionManager { get; private set; }
 
         private Context _targetContext;
-        private InputDevice _currentPressedDevice = null;
         internal abstract Task OnInitialization();
         internal abstract Task OnDeinitialization();
         internal abstract Task OnTriggerTransition();
@@ -51,8 +48,6 @@ namespace Scripts
 
             TransitionManager = Object.FindObjectOfType<TransitionManager>();
             await OnInitialization();
-            _initiateAction.EnableDirectAction();
-            InputSystem.onAfterUpdate += HandleInput;
             IsInitialized = true;
         }
 
@@ -62,28 +57,12 @@ namespace Scripts
             {
                 return;
             }
-
-            _initiateAction.DisableDirectAction();
-            InputSystem.onAfterUpdate -= HandleInput;
-            _currentPressedDevice = null;
+            
             await OnDeinitialization();
             IsInitialized = false;
         }
 
-        private async void HandleInput()
-        {
-            if (!TransitionManager.IsTransitioning && GetStartContext() == TransitionManager.CurrentContext && _initiateAction.action.ReadValue<float>() > 0.7f && _currentPressedDevice == null)
-            {
-                _currentPressedDevice = _initiateAction.action.activeControl.device;
-                await OnActionPressed();
-            }
-
-            if (_initiateAction.action.ReadValue<float>() < 0.3f && _initiateAction.action.activeControl != null && _initiateAction.action.activeControl.device == _currentPressedDevice)
-            {
-                _currentPressedDevice = null;
-                await OnActionRelease();
-            }
-        }
+       
 
         public async Task TriggerTransition()
         {
