@@ -25,7 +25,7 @@ public class TransitionManager : MonoBehaviour
     public Transform RightEyeTransform => _rightEyeTransform;
     
     [field: SerializeField]
-    public Context CurrentContext { private set; get; }
+    public Context CurrentContext { set; get; }
 
     public bool IsTransitioning { get; private set;  }
     
@@ -78,10 +78,8 @@ public class TransitionManager : MonoBehaviour
         
         _initiateAction.EnableDirectAction();
         InputSystem.onAfterUpdate += HandleInput;
-        
-#if UNITY_EDITOR
-        CurrentContext = FindObjectsOfType<Context>().First(context => context.name == "Context 1");
 
+#if UNITY_EDITOR
         foreach (var orbTransition in Transitions.OfType<OrbTransition>())
         {
             orbTransition.Initialize();
