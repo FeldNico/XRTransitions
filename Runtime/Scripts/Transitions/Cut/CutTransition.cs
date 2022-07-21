@@ -48,7 +48,7 @@ namespace Scripts.Transitions.Cut
             return _startContext;
         }
         
-        [MenuItem("Transition/Cut")]
+        [MenuItem("Transition/Trigger/Cut")]
         public static async void Trigger()
         {
             if (!Application.isPlaying)

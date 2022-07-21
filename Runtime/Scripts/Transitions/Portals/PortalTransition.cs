@@ -108,41 +108,5 @@ namespace Scripts
 
             return _startContext;
         }
-
-        [MenuItem("Transition/Portal")]
-        public static async void Trigger()
-        {
-            if (!Application.isPlaying)
-            {
-                Debug.LogError("Transition only available in Playmode");
-                return;
-            }
-
-            var transitionManager = Object.FindObjectOfType<TransitionManager>();
-            var transition =
-                transitionManager.Transitions.FirstOrDefault(transition =>
-                    transition.GetType() == typeof(PortalTransition)) as PortalTransition;
-            if (transition != null)
-            {
-                if (transition._portal == null)
-                {
-                    var portalToCam = transitionManager.MainCamera.transform.position -
-                                      transition._portalPosition.position;
-                    portalToCam.y = 0;
-                    transition._portal = Object.Instantiate(transition._portalPrefab,
-                        transition._portalPosition.position, Quaternion.LookRotation(portalToCam, Vector3.up),
-                        transition._portalPosition).GetComponent<Portal>();
-                    transition._portal.Initialize(transition);
-                }
-                else
-                {
-                    transition._portal.Destroy();
-                }
-            }
-            else
-            {
-                Debug.LogError("No PortalTransition found");
-            }
-        }
     }
 }

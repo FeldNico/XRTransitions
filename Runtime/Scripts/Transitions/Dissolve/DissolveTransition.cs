@@ -76,7 +76,7 @@ namespace Scripts
             return _startContext;
         }
         
-        [MenuItem("Transition/Dissolve")]
+        [MenuItem("Transition/Trigger/Dissolve")]
         public static async void Trigger()
         {
             if (!Application.isPlaying)

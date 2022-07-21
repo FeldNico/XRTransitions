@@ -64,7 +64,7 @@ namespace Scripts.Transformation
             return _startContext;
         }
         
-        [MenuItem("Transition/Transformation")]
+        [MenuItem("Transition/Trigger/Transformation")]
         public static async void Trigger()
         {
             if (!Application.isPlaying)

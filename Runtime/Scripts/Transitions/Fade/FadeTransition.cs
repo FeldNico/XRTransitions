@@ -64,7 +64,7 @@ public class FadeTransition : Transition
             return _startContext;
         }
         
-        [MenuItem("Transition/Fade")]
+        [MenuItem("Transition/Trigger/Fade")]
         public static async void Trigger()
         {
             if (!Application.isPlaying)

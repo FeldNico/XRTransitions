@@ -124,7 +124,7 @@ public class TransitionManager : MonoBehaviour
         await Task.WhenAll(Transitions.Where(transition => transition.GetType() == type).Select(transition => transition.Initialize()));
     }
 
-    [MenuItem("Transition/Initialize/Transformation")]
+    [MenuItem("Transition/Transformation")]
     public static void InitializeTransformations()
     {
         if (!Application.isPlaying)
@@ -135,7 +135,7 @@ public class TransitionManager : MonoBehaviour
         var tm = FindObjectOfType<TransitionManager>();
         tm.InitializeTransitionType(typeof(TransformationTransition));
     }
-    [MenuItem("Transition/Initialize/Portal")]
+    [MenuItem("Transition/Portal")]
     public static void InitializePortals()
     {
         if (!Application.isPlaying)
@@ -146,7 +146,7 @@ public class TransitionManager : MonoBehaviour
         var tm = FindObjectOfType<TransitionManager>();
         tm.InitializeTransitionType(typeof(PortalTransition));
     }
-    [MenuItem("Transition/Initialize/Cut")]
+    [MenuItem("Transition/Cut")]
     public static void InitializeCuts()
     {
         if (!Application.isPlaying)
@@ -157,7 +157,7 @@ public class TransitionManager : MonoBehaviour
         var tm = FindObjectOfType<TransitionManager>();
         tm.InitializeTransitionType(typeof(CutTransition));
     }
-    [MenuItem("Transition/Initialize/Fade")]
+    [MenuItem("Transition/Fade")]
     public static void InitializeFades()
     {
         if (!Application.isPlaying)
@@ -168,7 +168,7 @@ public class TransitionManager : MonoBehaviour
         var tm = FindObjectOfType<TransitionManager>();
         tm.InitializeTransitionType(typeof(FadeTransition));
     }
-    [MenuItem("Transition/Initialize/Dissolve")]
+    [MenuItem("Transition/Dissolve")]
     public static void InitializeDissolve()
     {
         if (!Application.isPlaying)
@@ -179,7 +179,7 @@ public class TransitionManager : MonoBehaviour
         var tm = FindObjectOfType<TransitionManager>();
         tm.InitializeTransitionType(typeof(DissolveTransition));
     }
-    [MenuItem("Transition/Initialize/Orbs")]
+    [MenuItem("Transition/Orbs")]
     public static void InitializeOrbs()
     {
         if (!Application.isPlaying)

@@ -18,17 +18,17 @@ public class ControllerAnimator: MonoBehaviour
 
     private void OnEnable()
     {
-        _transitionManager.OnStartTransition += Hide;
-        _transitionManager.OnEndTransition += Show;
-    }
-    
-    private void OnDisable()
-    {
-        _transitionManager.OnStartTransition -= Hide;
-        _transitionManager.OnEndTransition -= Show;
+        _transitionManager.OnStartTransition += _ => Hide();
+        _transitionManager.OnEndTransition += _ => Show();
     }
 
-    public void Hide(Transition transition)
+    private void OnDisable()
+    {
+        _transitionManager.OnStartTransition -= _ => Hide();
+        _transitionManager.OnEndTransition -= _ => Show();
+    }
+
+    public void Hide()
     {
         var c = _renderer.material.color;
         c.a = 0;
@@ -36,7 +36,7 @@ public class ControllerAnimator: MonoBehaviour
         IsHidden = true;
     }
 
-    public void Show(Transition transition)
+    public void Show()
     {
         var c = _renderer.material.color;
         c.a = 1;
