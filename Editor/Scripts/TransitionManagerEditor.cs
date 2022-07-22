@@ -75,6 +75,21 @@ namespace Editor.Scripts
                 EditorGUI.indentLevel--;
             }
             serializedObject.ApplyModifiedProperties();
+
+            if (Application.isPlaying)
+            {
+                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                EditorGUILayout.LabelField("Initialize Transition");
+                foreach (Type type in typeof(Transition).Assembly.GetTypes()
+                             .Where(t => t.IsSubclassOf(typeof(Transition))))
+                {
+                    var button = GUILayout.Button(type.Name.Replace("Transition", ""));
+                    if (button)
+                    {
+                        transitionManager.InitializeTransitionType(type);
+                    }
+                }
+            }
         }
     }
 }

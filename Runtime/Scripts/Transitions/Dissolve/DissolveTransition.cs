@@ -76,27 +76,5 @@ namespace Scripts
             return _startContext;
         }
         
-        [MenuItem("Transition/Trigger/Dissolve")]
-        public static async void Trigger()
-        {
-            if (!Application.isPlaying)
-            {
-                Debug.LogError("Transition only available in Playmode");
-                return;
-            }
-            
-            var transitionManager = Object.FindObjectOfType<TransitionManager>();
-            var transition =
-                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(DissolveTransition) && transition.GetStartContext() == transitionManager.CurrentContext);
-            if (transition != null)
-            {
-                await transition.OnInitialization();
-                transition.TriggerTransition();
-            }
-            else
-            {
-                Debug.LogError("No DissolveTransition found");
-            }
-        }
     }
 }

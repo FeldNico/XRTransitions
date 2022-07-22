@@ -63,28 +63,5 @@ namespace Scripts.Transformation
         {
             return _startContext;
         }
-        
-        [MenuItem("Transition/Trigger/Transformation")]
-        public static async void Trigger()
-        {
-            if (!Application.isPlaying)
-            {
-                Debug.LogError("Transition only available in Playmode");
-                return;
-            }
-            
-            var transitionManager = Object.FindObjectOfType<TransitionManager>();
-            var transition =
-                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(TransformationTransition) && transition.GetStartContext() == transitionManager.CurrentContext);
-            if (transition != null)
-            {
-                await transition.OnInitialization();
-                await transition.TriggerTransition();
-            }
-            else
-            {
-                Debug.LogError("No TransformationTransition found");
-            }
-        }
     }
 }

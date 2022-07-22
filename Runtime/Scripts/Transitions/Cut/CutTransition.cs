@@ -47,28 +47,5 @@ namespace Scripts.Transitions.Cut
         {
             return _startContext;
         }
-        
-        [MenuItem("Transition/Trigger/Cut")]
-        public static async void Trigger()
-        {
-            if (!Application.isPlaying)
-            {
-                Debug.LogError("Transition only available in Playmode");
-                return;
-            }
-            
-            var transitionManager = Object.FindObjectOfType<TransitionManager>();
-            var transition =
-                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(CutTransition) && transitionManager.CurrentContext == transition.GetStartContext());
-            if (transition != null)
-            {
-                await transition.OnInitialization();
-                transition.TriggerTransition();
-            }
-            else
-            {
-                Debug.LogError("No CutTransition found");
-            }
-        }
     }
 }

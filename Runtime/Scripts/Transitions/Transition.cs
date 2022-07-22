@@ -57,7 +57,8 @@ namespace Scripts
             {
                 return;
             }
-            
+
+            await OnActionRelease();
             await OnDeinitialization();
             IsInitialized = false;
         }

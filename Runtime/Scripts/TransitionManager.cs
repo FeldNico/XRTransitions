@@ -75,16 +75,11 @@ public class TransitionManager : MonoBehaviour
                 CurrentTransition = null;
             }
         };
-        
+
         _initiateAction.EnableDirectAction();
         InputSystem.onAfterUpdate += HandleInput;
 
 #if UNITY_EDITOR
-        foreach (var orbTransition in Transitions.OfType<OrbTransition>())
-        {
-            orbTransition.Initialize();
-        }
-        
         EditorApplication.playModeStateChanged += async change =>
         {
             if (change == PlayModeStateChange.ExitingPlayMode)
@@ -120,74 +115,8 @@ public class TransitionManager : MonoBehaviour
 
     public async Task InitializeTransitionType(Type type)
     {
+        _currentPressedDevice = null;
         await Task.WhenAll(Transitions.Where(transition => transition.GetType() != type && transition.IsInitialized).Select(transition => transition.Deinitialize()));
         await Task.WhenAll(Transitions.Where(transition => transition.GetType() == type).Select(transition => transition.Initialize()));
-    }
-
-    [MenuItem("Transition/Transformation")]
-    public static void InitializeTransformations()
-    {
-        if (!Application.isPlaying)
-        {
-            return;
-        }
-        
-        var tm = FindObjectOfType<TransitionManager>();
-        tm.InitializeTransitionType(typeof(TransformationTransition));
-    }
-    [MenuItem("Transition/Portal")]
-    public static void InitializePortals()
-    {
-        if (!Application.isPlaying)
-        {
-            return;
-        }
-        
-        var tm = FindObjectOfType<TransitionManager>();
-        tm.InitializeTransitionType(typeof(PortalTransition));
-    }
-    [MenuItem("Transition/Cut")]
-    public static void InitializeCuts()
-    {
-        if (!Application.isPlaying)
-        {
-            return;
-        }
-        
-        var tm = FindObjectOfType<TransitionManager>();
-        tm.InitializeTransitionType(typeof(CutTransition));
-    }
-    [MenuItem("Transition/Fade")]
-    public static void InitializeFades()
-    {
-        if (!Application.isPlaying)
-        {
-            return;
-        }
-        
-        var tm = FindObjectOfType<TransitionManager>();
-        tm.InitializeTransitionType(typeof(FadeTransition));
-    }
-    [MenuItem("Transition/Dissolve")]
-    public static void InitializeDissolve()
-    {
-        if (!Application.isPlaying)
-        {
-            return;
-        }
-        
-        var tm = FindObjectOfType<TransitionManager>();
-        tm.InitializeTransitionType(typeof(DissolveTransition));
-    }
-    [MenuItem("Transition/Orbs")]
-    public static void InitializeOrbs()
-    {
-        if (!Application.isPlaying)
-        {
-            return;
-        }
-        
-        var tm = FindObjectOfType<TransitionManager>();
-        tm.InitializeTransitionType(typeof(OrbTransition));
     }
 }

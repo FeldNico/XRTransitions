@@ -63,27 +63,4 @@ public class FadeTransition : Transition
         {
             return _startContext;
         }
-        
-        [MenuItem("Transition/Trigger/Fade")]
-        public static async void Trigger()
-        {
-            if (!Application.isPlaying)
-            {
-                Debug.LogError("Transition only available in Playmode");
-                return;
-            }
-            
-            var transitionManager = Object.FindObjectOfType<TransitionManager>();
-            var transition =
-                transitionManager.Transitions.FirstOrDefault(transition => transition.GetType() == typeof(FadeTransition));
-            if (transition != null)
-            {
-                await transition.OnInitialization();
-                transition.TriggerTransition();
-            }
-            else
-            {
-                Debug.LogError("No FadeTransition found");
-            }
-        }
     }
