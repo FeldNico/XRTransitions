@@ -14,6 +14,11 @@ namespace Scripts
     [Serializable]
     public abstract class Transition
     {
+        public static UnityAction<Transition> OnStartTransition;
+        public static UnityAction<Transition> OnEndTransition;
+        public static UnityAction<Transition,bool> OnActionPressed;
+        public static UnityAction<Transition> OnActionReleased;
+
         [field: SerializeField] public Transform Destination { get; private set; }
 
         [field: SerializeField, DisableProperty]
@@ -25,8 +30,8 @@ namespace Scripts
         internal abstract Task OnInitialization();
         internal abstract Task OnDeinitialization();
         internal abstract Task OnTriggerTransition();
-        internal abstract Task OnActionPressed();
-        internal abstract Task OnActionRelease();
+        internal abstract Task OnActionDown(bool isRight);
+        internal abstract Task OnActionUp();
         public abstract Context GetStartContext();
 
         public virtual Context GetTargetContext()
@@ -57,8 +62,7 @@ namespace Scripts
             {
                 return;
             }
-
-            await OnActionRelease();
+            
             await OnDeinitialization();
             IsInitialized = false;
         }
@@ -73,7 +77,7 @@ namespace Scripts
                 return;
             }
 
-            TransitionManager.OnStartTransition?.Invoke(this);
+            OnStartTransition?.Invoke(this);
             Context.OnExit?.Invoke(GetStartContext());
 
             Debug.Log("Transition");
@@ -85,7 +89,7 @@ namespace Scripts
             await Task.Yield();
 
             Context.OnEnter?.Invoke(GetTargetContext());
-            TransitionManager.OnEndTransition?.Invoke(this);
+            OnEndTransition?.Invoke(this);
         }
     }
 }

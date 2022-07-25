@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Scripts;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Management;
 using Object = UnityEngine.Object;
@@ -18,8 +20,10 @@ public class OrbTransition : Transition
     [SerializeField]
     private GameObject _orbPrefab;
     [SerializeField]
-    private Transform _controllerTransform;
-
+    private Transform _rightControllerTransform;
+    [SerializeField]
+    private Transform _leftControllerTransform;
+    
     private Orb _orb;
 
 
@@ -30,13 +34,13 @@ public class OrbTransition : Transition
         return Task.CompletedTask;
     }
 
-    internal override async Task OnActionPressed()
+    internal override async Task OnActionDown(bool isRight)
     {
-        Initiate();
+        Initiate(isRight);
         await Task.CompletedTask;
     }
     
-    internal override async Task OnActionRelease()
+    internal override async Task OnActionUp()
     {
         Deinitiate();
         await Task.CompletedTask;
@@ -66,16 +70,15 @@ public class OrbTransition : Transition
         return _startContext;
     }
 
-    private void Initiate()
+    private void Initiate(bool isRight)
     {
-        Debug.Log("Initiate");
         if (_orb != null)
         {
             Object.Destroy(_orb.gameObject);
         }
 
         _orb = Object.Instantiate(_orbPrefab).GetComponent<Orb>();
-        _orb.transform.parent = _controllerTransform;
+        _orb.transform.parent = isRight ? _rightControllerTransform : _leftControllerTransform;
         _orb.transform.localPosition = new Vector3(0,0.15f,0);
         _orb.transform.localRotation = Quaternion.identity;
         _orb.Initialize(this);

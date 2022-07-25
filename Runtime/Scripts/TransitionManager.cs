@@ -30,10 +30,7 @@ public class TransitionManager : MonoBehaviour
     public bool IsTransitioning { get; private set;  }
     
     public Transition CurrentTransition { get; private set; }
-
-    public UnityAction<Transition> OnStartTransition;
-    public UnityAction<Transition> OnEndTransition;
-
+    
     [SerializeField]
     private Camera _mainCamera;
     [SerializeField]
@@ -61,13 +58,13 @@ public class TransitionManager : MonoBehaviour
             CurrentContext = context;
         };
 
-        OnStartTransition += t =>
+        Transition.OnStartTransition += t =>
         {
             IsTransitioning = true;
             CurrentTransition = t;
         };
 
-        OnEndTransition += t =>
+        Transition.OnEndTransition += t =>
         {
             IsTransitioning = false;
             if (t == CurrentTransition)
@@ -100,16 +97,20 @@ public class TransitionManager : MonoBehaviour
         if (transition != null && !IsTransitioning && _initiateAction.action.ReadValue<float>() > 0.7f && _currentPressedDevice == null)
         {
             _currentPressedDevice = _initiateAction.action.activeControl.device;
-            await transition.OnActionPressed();
+            var isRight = _currentPressedDevice.displayName.ToLower().Contains("right");
+            Transition.OnActionPressed?.Invoke(transition,isRight);
+            await transition.OnActionDown(isRight);
         }
 
         if (_initiateAction.action.ReadValue<float>() < 0.3f && _initiateAction.action.activeControl != null && _initiateAction.action.activeControl.device == _currentPressedDevice)
         {
-            _currentPressedDevice = null;
             if (transition != null)
             {
-                await transition?.OnActionRelease();
+                var isRight = _currentPressedDevice.displayName.ToLower().Contains("right");
+                await transition?.OnActionUp();
+                Transition.OnActionReleased?.Invoke(transition);
             }
+            _currentPressedDevice = null;
         }
     }
 

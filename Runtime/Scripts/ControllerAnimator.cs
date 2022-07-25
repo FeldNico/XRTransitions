@@ -18,14 +18,14 @@ public class ControllerAnimator: MonoBehaviour
 
     private void OnEnable()
     {
-        _transitionManager.OnStartTransition += _ => Hide();
-        _transitionManager.OnEndTransition += _ => Show();
+        Transition.OnStartTransition += _ => Hide();
+        Transition.OnEndTransition += _ => Show();
     }
 
     private void OnDisable()
     {
-        _transitionManager.OnStartTransition -= _ => Hide();
-        _transitionManager.OnEndTransition -= _ => Show();
+        Transition.OnStartTransition -= _ => Hide();
+        Transition.OnEndTransition -= _ => Show();
     }
 
     public void Hide()

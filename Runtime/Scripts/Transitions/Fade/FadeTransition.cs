@@ -49,12 +49,12 @@ public class FadeTransition : Transition
             await _fade.FadeIn(_duration / 2f);
         }
 
-        internal override async Task OnActionPressed()
+        internal override async Task OnActionDown(bool isRight)
         {
             await TriggerTransition();
         }
 
-        internal override async Task OnActionRelease()
+        internal override async Task OnActionUp()
         {
             await Task.CompletedTask;
         }
