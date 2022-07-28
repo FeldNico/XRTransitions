@@ -1,19 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using Scripts;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
 public class ControllerAnimator: MonoBehaviour
 {
-    private Renderer _renderer;
-    private TransitionManager _transitionManager;
+    private Renderer[] _renderers;
 
-    public bool IsHidden { private set; get; }
+    public bool IsHidden { protected set; get; }
     
     private void Awake()
     {
-        _renderer = GetComponent<Renderer>();
-        _transitionManager = FindObjectOfType<TransitionManager>();
+        _renderers = GetComponentsInChildren<Renderer>();
     }
 
     private void OnEnable()
@@ -28,19 +27,27 @@ public class ControllerAnimator: MonoBehaviour
         Transition.OnEndTransition -= _ => Show();
     }
 
-    public void Hide()
+    public virtual void Hide()
     {
-        var c = _renderer.material.color;
-        c.a = 0;
-        _renderer.material.color = c;
+        foreach (var renderer in _renderers)
+        {
+            var c = renderer.material.color;
+            c.a = 0;
+            renderer.material.color = c;
+            
+        }
         IsHidden = true;
     }
 
-    public void Show()
+    public virtual void Show()
     {
-        var c = _renderer.material.color;
-        c.a = 1;
-        _renderer.material.color = c;
+        foreach (var renderer in _renderers)
+        {
+            var c = renderer.material.color;
+            c.a = 1;
+            renderer.material.color = c;
+            
+        }
         IsHidden = false;
     }
 }
