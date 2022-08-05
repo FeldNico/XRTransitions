@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
 public class TransitionManager : MonoBehaviour
@@ -97,8 +98,12 @@ public class TransitionManager : MonoBehaviour
         if (transition != null && !IsTransitioning && _initiateAction.action.ReadValue<float>() > 0.7f && _currentPressedDevice == null)
         {
             _currentPressedDevice = _initiateAction.action.activeControl.device;
-            var isRight = _currentPressedDevice.displayName.ToLower().Contains("right");
+            var controller = FindObjectsOfType<ActionBasedController>().FirstOrDefault(controller =>
+                controller.hapticDeviceAction.action.activeControl.device == _currentPressedDevice);
+            controller.SendHapticImpulse(0.3f, 0.1f);
+            var isRight =  controller.name.ToLower().Contains("right");
             Transition.OnActionPressed?.Invoke(transition,isRight);
+            
             await transition.OnActionDown(isRight);
         }
 
