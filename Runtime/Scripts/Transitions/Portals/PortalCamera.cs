@@ -94,7 +94,7 @@ namespace Scripts
         {
             if (_isInitialized && InputState.currentUpdateType == InputUpdateType.BeforeRender && _portalPlaneRenderer.isVisible )
             {
-                var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * _portalTransform.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
+                var localToWorldMatrix = _destination.localToWorldMatrix *  _transitionManager.XROrigin.transform.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
                 transform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
                 SetNearClipPlane();
                 _camera.Render();

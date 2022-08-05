@@ -56,16 +56,7 @@ namespace Scripts
 
         internal override async Task OnTriggerTransition()
         {
-            var localToWorldMatrix = Destination.localToWorldMatrix *
-                                     Matrix4x4.Rotate(Quaternion.AngleAxis(180f, Vector3.up)) *
-                                     _portal.transform.worldToLocalMatrix *
-                                     TransitionManager.MainCamera.transform.localToWorldMatrix;
-            TransitionManager.XROrigin.MoveCameraToWorldLocation(localToWorldMatrix.GetColumn(3));
-            Quaternion targetRotation =
-                Quaternion.FromToRotation(_portal.transform.forward, Destination.forward) *
-                Quaternion.AngleAxis(180f, Vector3.up);
-            targetRotation.ToAngleAxis(out var angle, out var axis);
-            TransitionManager.XROrigin.RotateAroundCameraPosition(axis, angle);
+            TransitionManager.XROrigin.transform.position = Destination.transform.position;
             await Task.WhenAll(_portal.Destroy());
         }
 
@@ -83,7 +74,8 @@ namespace Scripts
                 portalToCam.y = 0;
                 _portal = Object.Instantiate(_portalPrefab, _portalPosition.position,
                     Quaternion.LookRotation(portalToCam, Vector3.up), _portalPosition).GetComponent<Portal>();
-                Destination.rotation = Quaternion.LookRotation(portalToCam, Vector3.up);
+                
+                //_portal.GetOppositePortal().transform.rotation = Quaternion.LookRotation(portalToCam, Vector3.up);
                 await _portal.Initialize(this);
             }
             else

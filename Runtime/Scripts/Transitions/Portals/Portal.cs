@@ -99,7 +99,7 @@ public class Portal : MonoBehaviour
             {
                 foreach (var (originalTransform, dummyTransform) in _dummyList)
                 {
-                    var localToWorldMatrix = _destination.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.AngleAxis(180f,Vector3.up)) * transform.worldToLocalMatrix * originalTransform.localToWorldMatrix;
+                    var localToWorldMatrix = _destination.localToWorldMatrix * _transitionManager.XROrigin.transform.worldToLocalMatrix * originalTransform.localToWorldMatrix;
                     dummyTransform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
                 }
             }
@@ -127,7 +127,6 @@ public class Portal : MonoBehaviour
                 dummyRenderer.GetCopyOf(filter.GetComponent<MeshRenderer>());
                 dummyRenderer.bounds = new Bounds(Vector3.zero, Vector3.one * 10000f);
                 dummy.transform.localScale = filter.transform.lossyScale;
-                dummy.transform.parent = transform;
                 _dummyList.Add((filter.transform,dummy.transform));
             }
         }
