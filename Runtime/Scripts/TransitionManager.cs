@@ -119,10 +119,21 @@ public class TransitionManager : MonoBehaviour
         }
     }
 
+    public List<Transition> GetActiveTransitions()
+    {
+        return Transitions.Where(transition => transition.IsInitialized).ToList();
+    }
+
     public async Task InitializeTransitionType(Type type)
     {
         _currentPressedDevice = null;
         await Task.WhenAll(Transitions.Where(transition => transition.GetType() != type && transition.IsInitialized).Select(transition => transition.Deinitialize()));
         await Task.WhenAll(Transitions.Where(transition => transition.GetType() == type).Select(transition => transition.Initialize()));
+    }
+
+    public async Task DisableTransitions()
+    {
+        _currentPressedDevice = null;
+        await Task.WhenAll(Transitions.Where(transition => transition.IsInitialized).Select(transition => transition.Deinitialize()));
     }
 }
