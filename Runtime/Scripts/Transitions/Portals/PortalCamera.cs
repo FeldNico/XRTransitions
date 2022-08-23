@@ -65,10 +65,10 @@ namespace Scripts
         void SetNearClipPlane () {
             // Learning resource:
             // http://www.terathon.com/lengyel/Lengyel-Oblique.pdf
-            int dot = Math.Sign (Vector3.Dot (_destination.forward, _destination.position - transform.position));
+            int dot = Math.Sign (Vector3.Dot (-_portalTransform.forward, _destination.position - transform.position));
 
             Vector3 camSpacePos = _camera.worldToCameraMatrix.MultiplyPoint(_destination.position);
-            Vector3 camSpaceNormal = _camera.worldToCameraMatrix.MultiplyVector(_destination.forward) * dot;
+            Vector3 camSpaceNormal = _camera.worldToCameraMatrix.MultiplyVector(-_portalTransform.forward) * dot;
             float camSpaceDst = -Vector3.Dot (camSpacePos, camSpaceNormal) + nearClipOffset;
 
             // Don't use oblique clip plane if very close to portal as it seems this can cause some visual artifacts

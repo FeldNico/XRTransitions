@@ -13,17 +13,11 @@ using Object = UnityEngine.Object;
 
 public class OrbTransition : Transition
 {
-    public Context StartContext => _startContext;
-    
     [SerializeField]
     private Context _startContext;
     [SerializeField]
     private GameObject _orbPrefab;
-    [SerializeField]
-    private Transform _rightControllerTransform;
-    [SerializeField]
-    private Transform _leftControllerTransform;
-    
+
     private Orb _orb;
 
 
@@ -78,7 +72,10 @@ public class OrbTransition : Transition
         }
 
         _orb = Object.Instantiate(_orbPrefab).GetComponent<Orb>();
-        _orb.transform.parent = isRight ? _rightControllerTransform : _leftControllerTransform;
+        var controllerTransform = TransitionManager.XROrigin.GetComponentsInChildren<XRBaseController>().FirstOrDefault(controller =>
+            controller.name.ToLower().Contains(isRight ? "right" : "left"))
+            ?.transform;
+        _orb.transform.parent = controllerTransform;
         _orb.transform.localPosition = new Vector3(0,0.15f,0);
         _orb.transform.localRotation = Quaternion.identity;
         _orb.Initialize(this);
