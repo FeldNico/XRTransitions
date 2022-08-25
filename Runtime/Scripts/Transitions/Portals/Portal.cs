@@ -68,6 +68,19 @@ public class Portal : MonoBehaviour
         }
         transform.localScale = Vector3.one;
 
+        MeshFilter[] filters = _transitionManager.XROrigin.GetComponentsInChildren<MeshFilter>().Where(filter => filter.GetComponent<MeshRenderer>() != null).ToArray();
+        foreach (MeshFilter filter in filters)
+        {
+            GameObject dummy = new GameObject(filter.gameObject.name + "-Dummy");
+            MeshFilter dummyFilter = dummy.AddComponent<MeshFilter>();
+            MeshRenderer dummyRenderer = dummy.AddComponent<MeshRenderer>();
+            dummyFilter.GetCopyOf(filter);
+            dummyRenderer.GetCopyOf(filter.GetComponent<MeshRenderer>());
+            dummyRenderer.bounds = new Bounds(Vector3.zero, Vector3.one * 10000f);
+            dummy.transform.localScale = filter.transform.lossyScale;
+            _dummyList.Add((filter.transform,dummy.transform));
+        }
+        
         _isInitialized = true;
     }
 
@@ -86,7 +99,7 @@ public class Portal : MonoBehaviour
 
         if (_isPlayerInBounds)
         {
-            if (FrontOfPortal(_lastPosition) ^ FrontOfPortal(_mainCameraTransform.position))
+            if (FrontOfPortal(_lastPosition) && !FrontOfPortal(_mainCameraTransform.position))
             {
                 await _transition.TriggerTransition();
                 foreach (var (_, dummyTransform) in _dummyList)
@@ -95,14 +108,11 @@ public class Portal : MonoBehaviour
                 }
                 _dummyList.Clear();
             }
-            else
-            {
-                foreach (var (originalTransform, dummyTransform) in _dummyList)
-                {
-                    var localToWorldMatrix = _destination.localToWorldMatrix * _transitionManager.XROrigin.transform.worldToLocalMatrix * originalTransform.localToWorldMatrix;
-                    dummyTransform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
-                }
-            }
+        }
+        foreach (var (originalTransform, dummyTransform) in _dummyList)
+        {
+            var localToWorldMatrix = _destination.localToWorldMatrix * _transitionManager.XROrigin.transform.worldToLocalMatrix * originalTransform.localToWorldMatrix;
+            dummyTransform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
         }
     }
 
@@ -117,18 +127,6 @@ public class Portal : MonoBehaviour
         {
             _isPlayerInBounds = true;
             _lastPosition = _mainCameraTransform.position;
-            MeshFilter[] filters = _transitionManager.XROrigin.GetComponentsInChildren<MeshFilter>().Where(filter => filter.GetComponent<MeshRenderer>() != null).ToArray();
-            foreach (MeshFilter filter in filters)
-            {
-                GameObject dummy = new GameObject(filter.gameObject.name + "-Dummy");
-                MeshFilter dummyFilter = dummy.AddComponent<MeshFilter>();
-                MeshRenderer dummyRenderer = dummy.AddComponent<MeshRenderer>();
-                dummyFilter.GetCopyOf(filter);
-                dummyRenderer.GetCopyOf(filter.GetComponent<MeshRenderer>());
-                dummyRenderer.bounds = new Bounds(Vector3.zero, Vector3.one * 10000f);
-                dummy.transform.localScale = filter.transform.lossyScale;
-                _dummyList.Add((filter.transform,dummy.transform));
-            }
         }
     }
 
@@ -137,11 +135,6 @@ public class Portal : MonoBehaviour
         if (other.transform == _mainCameraTransform)
         {
             _isPlayerInBounds = false;
-            foreach (var (_, dummyTransform) in _dummyList)
-            {
-                Destroy(dummyTransform.gameObject);
-            }
-            _dummyList.Clear();
         }
     }
 
