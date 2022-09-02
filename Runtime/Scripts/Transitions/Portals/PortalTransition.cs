@@ -44,12 +44,12 @@ namespace Scripts
 
             if (_portal != null)
             {
-                await Task.WhenAll(_portal.Destroy()/*, _destinationPortal.Destroy()*/);
+                await Task.WhenAll(_portal.Destroy());
             }
             
             if (TransitionManager.MainCamera.GetComponent<Collider>() != null)
             {
-                Object.Destroy(TransitionManager.MainCamera.GetComponent<Collider>());
+                Object.DestroyImmediate(TransitionManager.MainCamera.GetComponent<Collider>());
             }
             
         }
@@ -75,7 +75,6 @@ namespace Scripts
                 _portal = Object.Instantiate(_portalPrefab, _portalPosition.position,
                     Quaternion.LookRotation(portalToCam, Vector3.up), _portalPosition).GetComponent<Portal>();
                 
-                //_portal.GetOppositePortal().transform.rotation = Quaternion.LookRotation(portalToCam, Vector3.up);
                 await _portal.Initialize(this);
             }
             else
