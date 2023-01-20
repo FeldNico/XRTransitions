@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.SqlServer.Server;
 using Scripts;
 using Scripts.Transformation;
 using Scripts.Transitions.Cut;
@@ -145,5 +146,26 @@ public class TransitionManager : MonoBehaviour
         _currentPressedDevice = null;
         await Task.WhenAll(Transitions.Where(transition => transition.IsInitialized)
             .Select(transition => transition.Deinitialize()));
+    }
+
+    [MenuItem("Transition/Trigger")]
+    public static void TriggerAction()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+        var tManager = FindObjectOfType<TransitionManager>();
+        var transition = tManager.GetActiveTransitions().FirstOrDefault(transition => transition.GetStartContext() == tManager.CurrentContext);
+        if (transition != null)
+        {
+            transition.OnActionDown(true);
+        }
+    }
+
+    [MenuItem("Transition/Screenshot")]
+    public static void Screenshot()
+    {
+        ScreenCapture.CaptureScreenshot("Screenshot.png",10);
     }
 }
