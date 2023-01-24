@@ -28,7 +28,7 @@ public class Fade : MonoBehaviour
     public void Initialize(FadeTransition transition)
     {
         transform.parent = _transitionManager.MainCamera.transform;
-        transform.localPosition = new Vector3(0f, 0f, _transitionManager.MainCamera.nearClipPlane+0.01f);
+        transform.localPosition = new Vector3(0f, 0f, _transitionManager.MainCamera.nearClipPlane+0.1f);
         transform.localRotation = Quaternion.AngleAxis(180,Vector3.up);
         
         PlaneRenderer.material.SetFloat(Alpha,0f);

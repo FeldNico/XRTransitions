@@ -46,7 +46,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _planeRenderer: {fileID: 8386987499017686775}
-  doUpdate: 0
 --- !u!1 &7651396111444876373
 GameObject:
   m_ObjectHideFlags: 0
@@ -58,7 +57,7 @@ GameObject:
   - component: {fileID: 5477739633586252219}
   - component: {fileID: 3747456191441377772}
   - component: {fileID: 8386987499017686775}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Plane
   m_TagString: Untagged
   m_Icon: {fileID: 0}

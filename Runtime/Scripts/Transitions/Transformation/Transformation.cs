@@ -91,7 +91,6 @@ namespace Scripts.Transformation
 
         private void OnDestroy()
         {
-
             if (_leftPortalCamera != null)
             {
                 Destroy(_leftPortalCamera.gameObject);

@@ -21,8 +21,7 @@ namespace Scripts
         private Camera.StereoscopicEye _eye;
         private Renderer _dissolvePlaneRenderer;
         private Transform _eyeTransform;
-        private Transform _localDummy;
-        private Transform _destination;
+        private Transform _anchor;
         
         private static readonly int LeftRenderTexture = Shader.PropertyToID("_LeftEyeTexture");
         private static readonly int RightRenderTexture = Shader.PropertyToID("_RightEyeTexture");
@@ -32,11 +31,10 @@ namespace Scripts
             _transitionManager = FindObjectOfType<TransitionManager>();
         }
 
-        public void Initialize(Dissolve dissolve, DissolveTransition transition, Camera.StereoscopicEye eye)
+        public void Initialize(Dissolve dissolve,Transform anchor, DissolveTransition transition, Camera.StereoscopicEye eye)
         {
-            _localDummy = dissolve.LocalDummy;
-            _destination = transition.Destination;
-            transform.parent = _destination;
+            _anchor = anchor;
+            transform.parent = _anchor;
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
 
@@ -68,10 +66,10 @@ namespace Scripts
         void SetNearClipPlane () {
             // Learning resource:
             // http://www.terathon.com/lengyel/Lengyel-Oblique.pdf
-            int dot = Math.Sign (Vector3.Dot (_destination.forward, _destination.position - transform.position));
+            int dot = Math.Sign (Vector3.Dot (_anchor.forward, _anchor.position - transform.position));
 
-            Vector3 camSpacePos = _camera.worldToCameraMatrix.MultiplyPoint(_destination.position);
-            Vector3 camSpaceNormal = _camera.worldToCameraMatrix.MultiplyVector(_destination.forward) * dot;
+            Vector3 camSpacePos = _camera.worldToCameraMatrix.MultiplyPoint(_anchor.position);
+            Vector3 camSpaceNormal = _camera.worldToCameraMatrix.MultiplyVector(_anchor.forward) * dot;
             float camSpaceDst = -Vector3.Dot (camSpacePos, camSpaceNormal) + nearClipOffset;
 
             // Don't use oblique clip plane if very close to portal as it seems this can cause some visual artifacts
@@ -98,8 +96,8 @@ namespace Scripts
             if (_isInitialized && InputState.currentUpdateType == InputUpdateType.BeforeRender )
             {
                 transform.position =
-                    _destination.transform.TransformPoint(_transitionManager.XROrigin.transform.InverseTransformPoint(_eyeTransform.position));
-                transform.rotation = _destination.transform.TransformRotation(
+                    _anchor.transform.TransformPoint(_transitionManager.XROrigin.transform.InverseTransformPoint(_eyeTransform.position));
+                transform.rotation = _anchor.transform.TransformRotation(
                     _transitionManager.XROrigin.transform.InverseTransformRotation(_eyeTransform.rotation));
                 //SetNearClipPlane();
                 _camera.Render();
