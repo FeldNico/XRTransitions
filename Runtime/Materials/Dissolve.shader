@@ -4,8 +4,6 @@
     {
         _LeftEyeTexture ("Texture", 2D) = "white" {}
         _RightEyeTexture("Texture", 2D) = "white" {}
-        _LeftEyeOriginalTexture ("Texture", 2D) = "white" {}
-        _RightEyeOriginalTexture("Texture", 2D) = "white" {}
         _Alpha ("Transparency", Float) = 1
     }
     SubShader
@@ -42,8 +40,6 @@
 
             sampler2D _LeftEyeTexture;
             sampler2D _RightEyeTexture;
-            sampler2D _LeftEyeOriginalTexture;
-            sampler2D _RightEyeOriginalTexture;
             float _Alpha;
 
             v2f vert (appdata v)
@@ -66,16 +62,6 @@
                 // sample the texture
                 fixed4 col = unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeTexture, uv) : tex2D(_RightEyeTexture, uv);
                 col.a = _Alpha;
-                /*
-                if (col.r == 0 && col.g == 0 && col.g == 0)
-                {
-                    col = unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeOriginalTexture, uv) : tex2D(_RightEyeOriginalTexture, uv);
-                    col.a = _Alpha;
-                } else
-                {
-                   col.a = 1- _Alpha; 
-                }
-                */
                 
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);

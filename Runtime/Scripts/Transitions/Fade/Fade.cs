@@ -1,19 +1,20 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-
+using Scripts;
 using UnityEngine;
 
 public class Fade : MonoBehaviour
 {
-    private static readonly int Color = Shader.PropertyToID("_Color");
-    private static readonly int Alpha = Shader.PropertyToID("_Alpha");
+    private static readonly int Progress = Shader.PropertyToID("_Progress");
 
     public Renderer PlaneRenderer => _planeRenderer;
-    
-    [SerializeField]
-    private Renderer _planeRenderer;
 
+    [SerializeField] private Renderer _planeRenderer;
+    private FadeCamera _leftCamera;
+    private FadeCamera _rightCamera;
     private TransitionManager _transitionManager;
+    private Transform _anchor;
+    private bool _isTargetAR;
 
     private void Awake()
     {
@@ -31,31 +32,56 @@ public class Fade : MonoBehaviour
         transform.localPosition = new Vector3(0f, 0f, _transitionManager.MainCamera.nearClipPlane+0.1f);
         transform.localRotation = Quaternion.AngleAxis(180,Vector3.up);
         
-        PlaneRenderer.material.SetFloat(Alpha,0f);
+        _isTargetAR = transition.GetTargetContext().IsAR;
+        if (_isTargetAR)
+        {
+            _anchor = new GameObject("FadeDestination").transform;
+            var xrTransform = _transitionManager.XROrigin.transform;
+            _anchor.position = xrTransform.position;
+            _anchor.rotation = xrTransform.rotation;
+        }
+        else
+        {
+            _anchor = new GameObject("FadeDestination").transform;
+            _anchor.position = transition.Destination.position;
+            _anchor.rotation = transition.Destination.rotation;
+        }
+
+        _leftCamera = new GameObject("LeftCamera").AddComponent<FadeCamera>();
+        _leftCamera.Initialize(this,_anchor, transition, Camera.StereoscopicEye.Left);
+
+        _rightCamera = new GameObject("RightCamera").AddComponent<FadeCamera>();
+        _rightCamera.Initialize(this,_anchor, transition, Camera.StereoscopicEye.Right);
+        
+        _planeRenderer.material.SetFloat(Progress,0f);
     }
 
-    public async Task FadeOut(float seconds, Color color)
+    public async Task FadeOutAndIn(float seconds)
     {
-        PlaneRenderer.material.SetColor(Color, color);
-        PlaneRenderer.material.SetFloat(Alpha,0);
+        if (_isTargetAR)
+        {
+            _planeRenderer.material.EnableKeyword("AR_TARGET");
+        }
+        else
+        {
+            _planeRenderer.material.DisableKeyword("AR_TARGET");
+        }
+        _planeRenderer.material.SetFloat(Progress,0);
         var startTime = Time.time;
         while (Time.time <= startTime + seconds)
         {
             await Task.Yield();
-            PlaneRenderer.material.SetFloat(Alpha,(Time.time - startTime)/seconds);
+            var progress = (Time.time - startTime) / seconds;
+            _planeRenderer.material.SetFloat(Progress,progress);
         }
-        PlaneRenderer.material.SetFloat(Alpha,1);
+        _planeRenderer.material.SetFloat(Progress,1);
     }
     
-    public async Task FadeIn(float seconds)
+    private void OnDestroy()
     {
-        PlaneRenderer.material.SetFloat(Alpha,1);
-        var startTime = Time.time;
-        while (Time.time <= startTime + seconds)
-        {
-            await Task.Yield();
-            PlaneRenderer.material.SetFloat(Alpha,1-(Time.time - startTime)/seconds);
-        }
-        PlaneRenderer.material.SetFloat(Alpha,0);
+        Destroy(_leftCamera.gameObject);
+        Destroy(_rightCamera.gameObject);
+        Destroy(_anchor.gameObject);
     }
+    
 }

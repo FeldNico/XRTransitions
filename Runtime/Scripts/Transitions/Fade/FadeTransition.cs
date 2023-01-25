@@ -14,8 +14,8 @@ public class FadeTransition : Transition
 
         [SerializeField] private Context _startContext;
         [SerializeField] private GameObject _fadePrefab;
-        [SerializeField] private Color _color = Color.black;
         [SerializeField] private float _duration;
+        
 
         private Fade _fade;
         
@@ -42,11 +42,18 @@ public class FadeTransition : Transition
             _fade = Object.Instantiate(_fadePrefab).GetComponent<Fade>();
             _fade.Initialize(this);
 
-            await _fade.FadeOut(_duration / 2f, _color);
-
-            TransitionManager.XROrigin.transform.position = Destination.position;
-
-            await _fade.FadeIn(_duration / 2f);
+            if (GetTargetContext().IsAR)
+            {
+                TransitionManager.XROrigin.transform.position = Destination.transform.position;
+                await _fade.FadeOutAndIn(_duration);
+            }
+            else
+            {
+                await _fade.FadeOutAndIn(_duration);
+                TransitionManager.XROrigin.transform.position = Destination.transform.position;
+            }
+            Object.Destroy(_fade.gameObject);
+            _fade = null;
         }
 
         internal override async Task OnActionDown(bool isRight)

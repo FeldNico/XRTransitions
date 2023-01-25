@@ -37,7 +37,7 @@ public class Dissolve : MonoBehaviour
         camPos.y = _transitionManager.XROrigin.transform.position.y;
     }
 
-    public void Initialize(DissolveTransition transition)
+    public void Initialize(Scripts.DissolveTransition transition)
     {
         _isTargetAR = transition.GetTargetContext().IsAR;
         if (_isTargetAR)
@@ -95,8 +95,8 @@ public class Dissolve : MonoBehaviour
         while (Time.time <= startTime + seconds)
         {
             await Task.Yield();
-            var percent = Mathf.Min((Time.time - startTime) / seconds, 1f);
-            PlaneRenderer.material.SetFloat(Alpha, _isTargetAR ? 1 - percent : percent);
+            var progress = Mathf.Min((Time.time - startTime) / seconds, 1f);
+            PlaneRenderer.material.SetFloat(Alpha, _isTargetAR ? 1 - progress : progress);
         }
 
         PlaneRenderer.material.SetFloat(Alpha, _isTargetAR ? 0 : 1);

@@ -2,15 +2,16 @@
 {
     Properties
     {
-        _Color ("Color",COLOR) = (0,0,0,1)
-        _Alpha ("Transparency", Float) = 1
+        _LeftEyeTexture ("Texture", 2D) = "white" {}
+        _RightEyeTexture("Texture", 2D) = "white" {}
+        _Progress ("Progress", Float) = 1
     }
     SubShader
     {
         Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
         ZWrite Off
         Blend SrcAlpha OneMinusSrcAlpha
-        LOD 100
+        Cull Off
         Pass
         {
             CGPROGRAM
@@ -18,6 +19,7 @@
             #pragma fragment frag
             // make fog work
             #pragma multi_compile_fog
+            #pragma multi_compile __ AR_TARGET
 
             #include "UnityCG.cginc"
 
@@ -37,8 +39,9 @@
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
-            fixed4 _Color;
-            float _Alpha;
+            sampler2D _LeftEyeTexture;
+            sampler2D _RightEyeTexture;
+            float _Progress;
 
             v2f vert (appdata v)
             {
@@ -55,10 +58,27 @@
             fixed4 frag(v2f i) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-
-                // sample the texture
-                fixed4 col = _Color * (0 ,0 ,0, _Alpha);
- 
+                float2 uv = i.screenPos.xy / i.screenPos.w; // clip space -> normalized texture
+                fixed4 col;
+                fixed alpha = _Progress <= 0.5f ? 1 - (_Progress * 2) : 2- (_Progress*2);
+#if defined(AR_TARGET)
+                if (_Progress <= 0.5f)
+#else
+                alpha = 1-alpha;
+                if (_Progress > 0.5f)
+#endif
+                {
+                    col = unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeTexture, uv) : tex2D(_RightEyeTexture, uv);
+                    col *= alpha;
+                    col.a = 1;
+                } else
+                {
+                    col.r = 0;
+                    col.g = 0;
+                    col.b = 0;
+                    col.a = alpha;
+                }
+                
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;
