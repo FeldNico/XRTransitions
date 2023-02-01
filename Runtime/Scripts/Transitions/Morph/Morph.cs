@@ -56,7 +56,7 @@ namespace Scripts.Morph
 
             var camTransform = _transitionManager.MainCamera.transform;
             transform.parent = _transitionManager.XROrigin.transform;
-            transform.position = camTransform.position;
+            transform.position = _transitionManager.CenterEyePosition;
             transform.localRotation = Quaternion.LookRotation(camTransform.forward,
                 camTransform.up);
         }

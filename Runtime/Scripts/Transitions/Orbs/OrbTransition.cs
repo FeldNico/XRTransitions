@@ -87,9 +87,7 @@ public class OrbTransition : Transition
         {
             return;
         }
-        
-        Debug.Log("Deinitiate");
-        
+
         Object.Destroy(_orb.gameObject);
         _orb = null;
     }

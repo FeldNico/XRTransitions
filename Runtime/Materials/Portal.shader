@@ -75,7 +75,7 @@
                 float2 uv = i.screenPos.xy / i.screenPos.w; // clip space -> normalized texture
                 float2 uv2 = float2((i.vertex.x +1 )/2 ,(i.vertex.y +1 )/2);
                 // sample the texture
-                fixed4 col = unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeTexture, i.nearPlanePos) : tex2D(_RightEyeTexture, i.nearPlanePos);
+                fixed4 col = unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeTexture, uv) : tex2D(_RightEyeTexture, uv);
  
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
