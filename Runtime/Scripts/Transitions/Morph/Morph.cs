@@ -63,6 +63,7 @@ namespace Scripts.Morph
 
         public async Task BlendForSeconds(float seconds)
         {
+            /*
             MeshFilter[] filters = _transitionManager.XROrigin.GetComponentsInChildren<MeshFilter>().Where(filter => filter.GetComponent<MeshRenderer>() != null && filter.GetComponentInParent<Dissolve>() == null).ToArray();
             foreach (MeshFilter filter in filters)
             {
@@ -75,6 +76,7 @@ namespace Scripts.Morph
                 dummy.transform.localScale = filter.transform.lossyScale;
                 _dummyList.Add((filter.transform,dummy.transform));
             }
+            */
 
             if (_isTargetAR)
             {
