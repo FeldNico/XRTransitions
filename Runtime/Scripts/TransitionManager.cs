@@ -2,16 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.SqlServer.Server;
 using Scripts;
-using Scripts.Transformation;
-using Scripts.Transitions.Cut;
 using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
@@ -21,6 +16,7 @@ public class TransitionManager : MonoBehaviour
 
     public XROrigin XROrigin => _xrOrigin;
     public Camera MainCamera => _mainCamera;
+    public Vector3 CenterEyePosition => (_leftEyeTransform.position + _rightEyeTransform.position) / 2f; // Can't use TrackedPoseDriver for CenterEye, as Varjo does not update the MR Offset on the CenterEye, only on the Left and Right Eye.
     public Transform LeftEyeTransform => _leftEyeTransform;
     public Transform RightEyeTransform => _rightEyeTransform;
 

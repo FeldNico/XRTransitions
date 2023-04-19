@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7741802427023455462}
   - component: {fileID: 7741802427023455463}
   m_Layer: 0
-  m_Name: Transformation
+  m_Name: Morph
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a48251350994243b5905fd22846e8cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _renderer: {fileID: 6608531637163119548}
+  planeRenderer: {fileID: 6608531637163119548}
 --- !u!1 &9063017270143936848
 GameObject:
   m_ObjectHideFlags: 0

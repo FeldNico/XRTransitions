@@ -31,11 +31,18 @@ namespace Scripts
         {
             _dissolve = Object.Instantiate(DissolvePrefab).GetComponent<Dissolve>();
             _dissolve.Initialize(this);
+
+            if (GetTargetContext().IsAR)
+            {
+                TransitionManager.XROrigin.transform.position = Destination.transform.position;
+                await _dissolve.BlendForSeconds(Duration);
+            }
+            else
+            {
+                await _dissolve.BlendForSeconds(Duration);
+                TransitionManager.XROrigin.transform.position = Destination.transform.position;
+            }
             
-            await _dissolve.BlendForSeconds(Duration);
-
-            TransitionManager.XROrigin.transform.position = Destination.transform.position;
-
             Object.Destroy(_dissolve.gameObject);
             _dissolve = null;
         }

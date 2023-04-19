@@ -11,7 +11,7 @@
         Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
         ZWrite Off
         Blend SrcAlpha OneMinusSrcAlpha
-        LOD 100
+        Cull Off
         Pass
         {
             CGPROGRAM
@@ -60,8 +60,9 @@
                 float2 uv = i.screenPos.xy / i.screenPos.w; // clip space -> normalized texture
  
                 // sample the texture
-                fixed4 col = (unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeTexture, uv) : tex2D(_RightEyeTexture, uv)) * (1,1,1,_Alpha);
- 
+                fixed4 col = unity_StereoEyeIndex == 0 ? tex2D(_LeftEyeTexture, uv) : tex2D(_RightEyeTexture, uv);
+                col.a = _Alpha;
+                
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;

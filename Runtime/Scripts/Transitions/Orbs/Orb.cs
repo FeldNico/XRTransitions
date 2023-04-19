@@ -53,7 +53,7 @@ public class Orb : MonoBehaviour
 
     private void Update()
     {
-        if (Vector3.Distance(transform.position, _transitionManager.MainCamera.transform.position) <= 0.2f)
+        if (Vector3.Distance(transform.position, _transitionManager.CenterEyePosition) <= 0.2f)
         {
             _transition.TriggerTransition();
         }

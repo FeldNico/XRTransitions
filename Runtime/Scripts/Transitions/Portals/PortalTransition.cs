@@ -70,7 +70,7 @@ namespace Scripts
             _isAnimating = true;
             if (_portal == null)
             {
-                var portalToCam = TransitionManager.MainCamera.transform.position - _portalPosition.position;
+                var portalToCam = TransitionManager.CenterEyePosition - _portalPosition.position;
                 portalToCam.y = 0;
                 _portal = Object.Instantiate(_portalPrefab, _portalPosition.position,
                     Quaternion.LookRotation(portalToCam, Vector3.up), _portalPosition).GetComponent<Portal>();

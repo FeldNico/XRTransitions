@@ -23,7 +23,6 @@ public class Portal : MonoBehaviour
     private PortalTransition _transition;
     private TransitionManager _transitionManager;
     private Transform _destination;
-    private Transform _mainCameraTransform;
     private Vector3 _lastPosition;
     private List<(Transform, Transform)> _dummyList = new();
     private bool _isPlayerInBounds = false;
@@ -34,7 +33,6 @@ public class Portal : MonoBehaviour
             PlaneRenderer = transform.Find("RenderPlane").GetComponent<MeshRenderer>();
         }
         _transitionManager = FindObjectOfType<TransitionManager>();
-        _mainCameraTransform = _transitionManager.MainCamera.transform;
     }
 
     public async Task Initialize(PortalTransition transition)
@@ -48,12 +46,12 @@ public class Portal : MonoBehaviour
         _rightPortalCamera.Initialize(this, transition, Camera.StereoscopicEye.Right);
 
         _destination = transition.Destination;
-        _lastPosition = _mainCameraTransform.position;
+        _lastPosition = _transitionManager.CenterEyePosition;
         Context.OnEnter += context =>
         {
             if (context == _transition.GetStartContext())
             {
-                _lastPosition = _mainCameraTransform.position;
+                _lastPosition = _transitionManager.CenterEyePosition;
             }
         };
 
@@ -99,7 +97,7 @@ public class Portal : MonoBehaviour
 
         if (_isPlayerInBounds)
         {
-            if (FrontOfPortal(_lastPosition) && !FrontOfPortal(_mainCameraTransform.position))
+            if (FrontOfPortal(_lastPosition) && !FrontOfPortal(_transitionManager.CenterEyePosition))
             {
                 await _transition.TriggerTransition();
                 foreach (var (_, dummyTransform) in _dummyList)
@@ -118,21 +116,21 @@ public class Portal : MonoBehaviour
 
     private void LateUpdate()
     {
-        _lastPosition = _mainCameraTransform.position;
+        _lastPosition = _transitionManager.CenterEyePosition;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.transform == _mainCameraTransform)
+        if (other.transform == _transitionManager.MainCamera.transform)
         {
             _isPlayerInBounds = true;
-            _lastPosition = _mainCameraTransform.position;
+            _lastPosition = _transitionManager.CenterEyePosition;
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.transform == _mainCameraTransform)
+        if (other.transform == _transitionManager.MainCamera.transform)
         {
             _isPlayerInBounds = false;
         }
@@ -149,7 +147,7 @@ public class Portal : MonoBehaviour
             _rightPortalCamera.gameObject.SetActive(true);
         }
 
-        if (_isInitialized && _transition.GetStartContext() == _transitionManager.CurrentContext && Math.Sign(Vector3.Dot(_mainCameraTransform.position - transform.position, transform.forward)) < 0)
+        if (_isInitialized && _transition.GetStartContext() == _transitionManager.CurrentContext && Math.Sign(Vector3.Dot(_transitionManager.CenterEyePosition - transform.position, transform.forward)) < 0)
         {
             transform.rotation *= Quaternion.AngleAxis(180f,Vector3.up);
             _transition.Destination.rotation *= Quaternion.AngleAxis(180f,Vector3.up);
