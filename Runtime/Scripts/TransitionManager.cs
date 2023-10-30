@@ -158,10 +158,4 @@ public class TransitionManager : MonoBehaviour
             transition.OnActionDown(true);
         }
     }
-
-    [MenuItem("Transition/Screenshot")]
-    public static void Screenshot()
-    {
-        ScreenCapture.CaptureScreenshot("Screenshot.png",10);
-    }
 }

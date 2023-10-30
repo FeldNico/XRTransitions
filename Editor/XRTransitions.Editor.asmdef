@@ -1,7 +1,9 @@
 {
     "name": "XRTransitions.Editor",
+    "rootNamespace": "",
     "references": [
-        "XRTransitions.Runtime"
+        "XRTransitions.Runtime",
+        "Unity.XR.CoreUtils"
     ],
     "includePlatforms": [
         "Editor"
