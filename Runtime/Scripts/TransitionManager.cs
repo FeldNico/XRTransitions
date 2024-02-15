@@ -144,6 +144,7 @@ public class TransitionManager : MonoBehaviour
             .Select(transition => transition.Deinitialize()));
     }
 
+    /*
     [MenuItem("Transition/Trigger")]
     public static void TriggerAction()
     {
@@ -158,4 +159,5 @@ public class TransitionManager : MonoBehaviour
             transition.OnActionDown(true);
         }
     }
+    */
 }
