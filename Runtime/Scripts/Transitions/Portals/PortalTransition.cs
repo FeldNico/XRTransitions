@@ -26,7 +26,7 @@ namespace Scripts
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete ||
                    !TransitionManager.MainCamera.stereoEnabled)
             {
-                await Task.Delay(1);
+                await Task.Yield();
             }
             
             if (TransitionManager.MainCamera.GetComponent<Collider>() == null)
@@ -39,7 +39,7 @@ namespace Scripts
         {
             while (_isAnimating || TransitionManager.IsTransitioning)
             {
-                await Task.Delay(1);
+                await Task.Yield();
             }
 
             if (_portal != null)

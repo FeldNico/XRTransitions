@@ -28,7 +28,7 @@ public class FadeTransition : Transition
         {
             while (TransitionManager.IsTransitioning)
             {
-                await Task.Delay(1);
+                await Task.Yield();
             }
 
             if (_fade != null)

@@ -61,7 +61,7 @@ namespace Scripts
         {
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !TransitionManager.MainCamera.stereoEnabled)
             {
-                await Task.Delay(1);
+                await Task.Yield();
             }
         }
         
@@ -69,7 +69,7 @@ namespace Scripts
         {
             while (TransitionManager.IsTransitioning)
             {
-                await Task.Delay(1);
+                await Task.Yield();
             }
 
             if (_dissolve != null)

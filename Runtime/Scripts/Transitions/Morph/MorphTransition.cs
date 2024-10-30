@@ -19,7 +19,7 @@ namespace Scripts.Morph
         {
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !TransitionManager.MainCamera.stereoEnabled)
             {
-                await Task.Delay(1);
+                await Task.Yield();
             }
         }
 
@@ -27,7 +27,7 @@ namespace Scripts.Morph
         {
             while (TransitionManager.IsTransitioning)
             {
-                await Task.Delay(1);
+                await Task.Yield();
             }
             
             if (_morph != null)

@@ -44,7 +44,7 @@ public class OrbTransition : Transition
     {
         while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !TransitionManager.MainCamera.stereoEnabled)
         {
-            await Task.Delay(1);
+            await Task.Yield();
         }
     }
     
@@ -52,7 +52,7 @@ public class OrbTransition : Transition
     {
         while (TransitionManager.IsTransitioning)
         {
-            await Task.Delay(1);
+            await Task.Yield();
         }
 
         Deinitiate();
