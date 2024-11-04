@@ -59,10 +59,13 @@ namespace Scripts
 
         internal override async Task OnInitialization()
         {
+#if !UNITY_WEBGL
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete || !TransitionManager.MainCamera.stereoEnabled)
             {
                 await Task.Yield();
             }
+#endif
+            await Task.CompletedTask;
         }
         
         internal override async Task OnDeinitialization()

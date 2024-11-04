@@ -1,10 +1,7 @@
 ﻿using System;
 using Scripts.Utils;
-using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.Rendering;
 
 namespace Scripts
 {
@@ -43,13 +40,23 @@ namespace Scripts
                 _camera = gameObject.AddComponent<Camera>();
             }
             _mainCamera = _transitionManager.MainCamera;
-            _camera.CopyFrom(_mainCamera);
+            Camera eyeCamera = null;
+            if (eye == Camera.StereoscopicEye.Left)
+            {
+                eyeCamera = GameObject.Find("CameraARL").GetComponent<Camera>();
+            }
+            else
+            {
+                eyeCamera = GameObject.Find("CameraARR").GetComponent<Camera>();
+            }
+            _camera.CopyFrom(eyeCamera);
             _camera.forceIntoRenderTexture = true;
-            _camera.targetTexture = new RenderTexture(_mainCamera.pixelWidth, _mainCamera.pixelHeight, 24);
-            _camera.aspect = _mainCamera.aspect;
-            _camera.fieldOfView = _mainCamera.fieldOfView;
-            _camera.projectionMatrix = _mainCamera.GetStereoProjectionMatrix(eye);
-            _camera.nonJitteredProjectionMatrix = _mainCamera.GetStereoNonJitteredProjectionMatrix(eye);
+            _camera.targetTexture = new RenderTexture(eyeCamera.pixelWidth, eyeCamera.pixelHeight, 24);
+
+            _camera.aspect = eyeCamera.aspect;
+            _camera.fieldOfView = eyeCamera.fieldOfView;
+            _camera.projectionMatrix = eyeCamera.projectionMatrix;
+            _camera.nonJitteredProjectionMatrix = eyeCamera.nonJitteredProjectionMatrix;
             _camera.enabled = false;
 
             _eye = eye;
@@ -92,11 +99,11 @@ namespace Scripts
 
         private void RenderPortal()
         {
-            if (_isInitialized && InputState.currentUpdateType == InputUpdateType.BeforeRender && _portalPlaneRenderer.isVisible )
+            if (_isInitialized && /*InputState.currentUpdateType == InputUpdateType.BeforeRender &&*/ _portalPlaneRenderer.isVisible )
             {
                 var localToWorldMatrix = _destination.localToWorldMatrix *  _transitionManager.XROrigin.transform.worldToLocalMatrix * _eyeTransform.localToWorldMatrix;
                 transform.SetPositionAndRotation(localToWorldMatrix.GetColumn(3),localToWorldMatrix.rotation);
-                SetNearClipPlane();
+                //SetNearClipPlane();
                 _camera.Render();
             }
         }

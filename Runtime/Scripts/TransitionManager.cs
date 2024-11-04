@@ -102,13 +102,13 @@ public class TransitionManager : MonoBehaviour
             _currentPressedDevice == null)
         {
             _currentPressedDevice = device;
-            var controller = FindObjectsOfType<ActionBasedController>().FirstOrDefault(controller =>
-                controller.hapticDeviceAction.action.activeControl.device == _currentPressedDevice);
-            controller.SendHapticImpulse(0.3f, 0.1f);
-            var isRight = controller.name.ToLower().Contains("right");
-            Transition.OnActionPressed?.Invoke(transition, isRight);
+            //var controller = FindObjectsOfType<ActionBasedController>().FirstOrDefault(controller =>
+                //controller.hapticDeviceAction.action.activeControl.device == _currentPressedDevice);
+            //controller.SendHapticImpulse(0.3f, 0.1f);
+            //var isRight = controller.name.ToLower().Contains("right");
+            Transition.OnActionPressed?.Invoke(transition, true);
 
-            await transition.OnActionDown(isRight);
+            await transition.OnActionDown(true);
         }
 
         if (currentValue < 0.4f && device == _currentPressedDevice)
@@ -144,7 +144,7 @@ public class TransitionManager : MonoBehaviour
             .Select(transition => transition.Deinitialize()));
     }
 
-    /*
+    #if UNITY_EDITOR
     [MenuItem("Transition/Trigger")]
     public static void TriggerAction()
     {
@@ -159,5 +159,6 @@ public class TransitionManager : MonoBehaviour
             transition.OnActionDown(true);
         }
     }
-    */
+    #endif
+    
 }

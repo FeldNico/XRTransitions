@@ -23,11 +23,14 @@ namespace Scripts
 
         internal override async Task OnInitialization()
         {
+            #if !UNITY_WEBGL
             while (!XRGeneralSettings.Instance.Manager.isInitializationComplete ||
                    !TransitionManager.MainCamera.stereoEnabled)
             {
                 await Task.Yield();
             }
+            #endif
+            await Task.CompletedTask;
             
             if (TransitionManager.MainCamera.GetComponent<Collider>() == null)
             {
@@ -75,6 +78,7 @@ namespace Scripts
                 _portal = Object.Instantiate(_portalPrefab, _portalPosition.position,
                     Quaternion.LookRotation(portalToCam, Vector3.up), _portalPosition).GetComponent<Portal>();
                 
+                Debug.LogError("Portal Initialize");
                 await _portal.Initialize(this);
             }
             else

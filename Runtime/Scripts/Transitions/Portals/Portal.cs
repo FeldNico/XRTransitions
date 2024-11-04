@@ -45,6 +45,7 @@ public class Portal : MonoBehaviour
         _rightPortalCamera = new GameObject("RightCamera").AddComponent<PortalCamera>();
         _rightPortalCamera.Initialize(this, transition, Camera.StereoscopicEye.Right);
 
+        Debug.LogError("Cameras initialized");
         _destination = transition.Destination;
         _lastPosition = _transitionManager.CenterEyePosition;
         Context.OnEnter += context =>
@@ -62,7 +63,7 @@ public class Portal : MonoBehaviour
         {
             transform.localScale =
                 Vector3.Lerp(Vector3.zero, Vector3.one, (Time.time - startTime) / _animationTime);
-            await Task.Delay(1);
+            await Task.Yield();
         }
         transform.localScale = Vector3.one;
 
@@ -175,7 +176,7 @@ public class Portal : MonoBehaviour
         {
             transform.localScale =
                 Vector3.Lerp(Vector3.one, Vector3.zero, (Time.time - startTime) / _animationTime);
-            await Task.Delay(1);
+            await Task.Yield();
         }
         Destroy(gameObject);
     }
